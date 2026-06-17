@@ -242,3 +242,57 @@
 .waiting button:hover {
   border-color: var(--accent-border);
 }
+
+/* --- fighter canvas --- */
+.fighter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.arena {
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  aspect-ratio: 800 / 360;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #0f1018;
+}
+.controls-hint {
+  color: var(--text);
+  font-size: 13px;
+}
+.controls-hint b {
+  color: var(--text-h);
+}
+.leave-game {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-h);
+  cursor: pointer;
+}
+.leave-game:hover {
+  border-color: var(--accent-border);
+}
+.result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+.result button {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent);
+  color: #1a1024;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
