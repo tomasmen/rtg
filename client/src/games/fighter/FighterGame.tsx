@@ -4,7 +4,7 @@ import { tables, reducers } from '../../module_bindings';
 import { draw, type DrawFighter, type DrawMatch } from './render';
 import { newEffects, pushHit, tickEffects, type Effects } from './effects';
 import { playSfx } from './audio';
-import { CANVAS_W, CANVAS_H } from './constants';
+import { CANVAS_W, CANVAS_H, SHAKE_MAX } from './constants';
 
 export function FighterGame({ roomId }: { roomId: bigint }) {
   const { identity, getConnection, isActive } = useSpacetimeDB();
@@ -92,6 +92,11 @@ export function FighterGame({ roomId }: { roomId: bigint }) {
       if (ev.kind === 'hit' || ev.kind === 'block') {
         // victimSlot is authoritative from the server (no nearest-fighter guessing)
         pushHit(effectsRef.current, ev.x, ev.y, ev.amount, ev.victimSlot, ev.kind === 'block');
+        // if MY hit got guarded, jolt my screen a bit (recoil off the block)
+        const ms = dataRef.current.mySlot;
+        if (ev.kind === 'block' && ms >= 0 && ms !== ev.victimSlot) {
+          effectsRef.current.shake = Math.min(SHAKE_MAX, effectsRef.current.shake + 4.5);
+        }
       }
     };
     conn.db.fightEvent.onInsert(onEvent);
