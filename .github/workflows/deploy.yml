@@ -1,0 +1,73 @@
+name: Deploy
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  publish-module:
+    name: Publish module to Maincloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SpacetimeDB CLI
+        run: |
+          curl -sSf https://install.spacetimedb.com | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.local/share/spacetime/bin/current" >> "$GITHUB_PATH"
+
+      - name: Verify CLI
+        run: spacetime --version
+
+      - name: Authenticate
+        run: spacetime login --token "$SPACETIME_TOKEN"
+        env:
+          SPACETIME_TOKEN: ${{ secrets.SPACETIME_TOKEN }}
+
+      - name: Publish to Maincloud
+        run: spacetime publish rtg --server maincloud -p server/spacetimedb -y
+
+  deploy-client:
+    name: Build + deploy client to Pages
+    needs: publish-module
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install client dependencies
+        run: npm --prefix client ci
+
+      - name: Build client
+        run: npm --prefix client run build
+        env:
+          VITE_BASE: /rtg/
+          VITE_STDB_URI: wss://maincloud.spacetimedb.com
+          VITE_STDB_DB: rtg
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: client/dist
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

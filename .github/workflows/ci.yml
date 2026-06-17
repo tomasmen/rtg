@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: |
+          npm --prefix server/spacetimedb ci
+          npm --prefix client ci
+
+      - name: Typecheck (server + client)
+        run: npm run typecheck
+
+      - name: Run tests (if any)
+        run: npm test --if-present
+
+      - name: Build client
+        run: npm --prefix client run build
+        env:
+          VITE_BASE: /rtg/
