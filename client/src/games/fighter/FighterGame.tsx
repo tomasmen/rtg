@@ -124,7 +124,7 @@ export function FighterGame({ roomId }: { roomId: bigint }) {
           }
           renderRef.current.set(f.slot, r);
           return {
-            x: r.x, y: r.y, facing: f.facing, hp: f.hp, phase: f.phase, slot: f.slot,
+            x: r.x, y: r.y, facing: f.facing, hp: f.hp, stamina: f.stamina, phase: f.phase, slot: f.slot,
             name: nameOf(f.identity.toHexString()),
             attackKind: f.attackKind, phaseFrame: f.phaseFrame, t,
           };

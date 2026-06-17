@@ -2,6 +2,7 @@ import {
   ARENA_W, GROUND_Y, FIGHTER_W, FIGHTER_H, CROUCH_H, GRAVITY, MOVE_SPEED,
   AIR_CONTROL, JUMP_V, MAX_HP, GROUND_FRICTION,
   DASH_TAP_WINDOW, DASH_SPEED, DASH_FRAMES,
+  MAX_STAMINA, JUMP_COST, BLOCK_DRAIN, BLOCK_HIT_COST, STAMINA_REGEN, REGEN_DELAY, EMPTY_REGEN_DELAY,
   MOVES, type AttackKind,
 } from './constants';
 
@@ -16,6 +17,8 @@ export interface FighterState {
   attackHasHit: boolean;      // prevents an active window from multi-hitting
   airAttackUsed: boolean;     // one air attack per jump
   stunFrames: number;         // length of the current hitstun/blockstun (frames)
+  stamina: number;            // 0..MAX_STAMINA — spent by jump/block
+  staminaCd: number;          // frames until stamina regen may resume
   // input-edge & dash memory (sim-internal; persisted on the fighter row):
   prevJump: boolean; prevLight: boolean; prevHeavy: boolean;
   prevMoveX: number; dashTapDir: number; dashTapFrames: number;
@@ -54,6 +57,8 @@ export function initialFighter(slot: number): FighterState {
     attackHasHit: false,
     airAttackUsed: false,
     stunFrames: 0,
+    stamina: MAX_STAMINA,
+    staminaCd: 0,
     prevJump: false,
     prevLight: false,
     prevHeavy: false,
@@ -138,7 +143,7 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number): FighterState 
         f.phase = 'dash';
         f.phaseFrame = 0;
         f.vx = dashTriggered * DASH_SPEED;
-      } else if (input.block) {
+      } else if (input.block && f.stamina > 0) {
         f.phase = 'block';
         f.vx = 0;
       } else if (input.crouch) {
@@ -146,10 +151,12 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number): FighterState 
         f.vx = 0;
       } else {
         f.vx = input.moveX * MOVE_SPEED;
-        if (jumpEdge) {
+        if (jumpEdge && f.stamina >= JUMP_COST) {
           f.vy = JUMP_V;
           f.phase = 'jump';
           f.airAttackUsed = false; // fresh jump → air attack available again
+          f.stamina -= JUMP_COST;
+          f.staminaCd = f.stamina <= 0 ? EMPTY_REGEN_DELAY : REGEN_DELAY;
         } else {
           f.phase = input.moveX !== 0 ? 'walk' : 'idle';
         }
@@ -202,6 +209,22 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number): FighterState 
   f.prevLight = input.light;
   f.prevHeavy = input.heavy;
   f.prevMoveX = input.moveX;
+
+  // --- stamina: drain while guarding, else regen after the cooldown ---
+  if (f.phase === 'block') {
+    f.stamina -= BLOCK_DRAIN;
+    if (f.stamina <= 0) {
+      f.stamina = 0;
+      f.staminaCd = EMPTY_REGEN_DELAY;
+      f.phase = 'idle'; // out of stamina → the guard drops
+    } else {
+      f.staminaCd = REGEN_DELAY;
+    }
+  } else if (f.staminaCd > 0) {
+    f.staminaCd -= 1;
+  } else if (f.stamina < MAX_STAMINA) {
+    f.stamina = Math.min(MAX_STAMINA, f.stamina + STAMINA_REGEN);
+  }
 
   // --- phase frame counter ---
   // A freshly-entered phase counts as its first elapsed frame (1); continuing
@@ -264,6 +287,8 @@ function resolveHit(
     vicLive.phaseFrame = 0;
     vicLive.stunFrames = move.blockstun;
     vicLive.vx = dir * (move.kb * 0.25); // small pushback
+    vicLive.stamina = Math.max(0, vicLive.stamina - BLOCK_HIT_COST); // blocking a hit costs a chunk
+    vicLive.staminaCd = vicLive.stamina <= 0 ? EMPTY_REGEN_DELAY : REGEN_DELAY;
     events.push({ kind: 'block', victimSlot, x: contactX, y: contactY, amount: move.chip });
   } else {
     vicLive.hp -= move.dmg;

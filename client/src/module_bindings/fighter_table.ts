@@ -27,6 +27,8 @@ export default __t.row({
   attackHasHit: __t.bool().name("attack_has_hit"),
   airAttackUsed: __t.bool().name("air_attack_used"),
   stunFrames: __t.u32().name("stun_frames"),
+  stamina: __t.f32(),
+  staminaCd: __t.u32().name("stamina_cd"),
   prevJump: __t.bool().name("prev_jump"),
   prevLight: __t.bool().name("prev_light"),
   prevHeavy: __t.bool().name("prev_heavy"),

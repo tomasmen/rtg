@@ -20,7 +20,7 @@ function toState(r: any): FighterState {
     x: r.x, y: r.y, vx: r.vx, vy: r.vy, facing: r.facing, hp: r.hp,
     phase: r.phase, phaseFrame: r.phaseFrame,
     attackKind: r.attackKind, attackHasHit: r.attackHasHit, airAttackUsed: r.airAttackUsed,
-    stunFrames: r.stunFrames,
+    stunFrames: r.stunFrames, stamina: r.stamina, staminaCd: r.staminaCd,
     prevJump: r.prevJump, prevLight: r.prevLight, prevHeavy: r.prevHeavy,
     prevMoveX: r.prevMoveX, dashTapDir: r.dashTapDir, dashTapFrames: r.dashTapFrames,
   };
@@ -33,7 +33,7 @@ function withState(row: any, s: FighterState): any {
     x: s.x, y: s.y, vx: s.vx, vy: s.vy, facing: s.facing, hp: s.hp,
     phase: s.phase, phaseFrame: s.phaseFrame,
     attackKind: s.attackKind, attackHasHit: s.attackHasHit, airAttackUsed: s.airAttackUsed,
-    stunFrames: s.stunFrames,
+    stunFrames: s.stunFrames, stamina: s.stamina, staminaCd: s.staminaCd,
     prevJump: s.prevJump, prevLight: s.prevLight, prevHeavy: s.prevHeavy,
     prevMoveX: s.prevMoveX, dashTapDir: s.dashTapDir, dashTapFrames: s.dashTapFrames,
   };

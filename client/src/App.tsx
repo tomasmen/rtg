@@ -47,17 +47,19 @@ export default function App() {
         </span>
       </header>
 
-      <form className="name-form" onSubmit={submit}>
-        <input
-          name="displayName"
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          placeholder={me?.displayName || 'Enter your name'}
-          maxLength={24}
-          aria-label="Your display name"
-        />
-        <button type="submit">Set name</button>
-      </form>
+      {myRoomId === null && (
+        <form className="name-form" onSubmit={submit}>
+          <input
+            name="displayName"
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            placeholder={me?.displayName || 'Enter your name'}
+            maxLength={24}
+            aria-label="Your display name"
+          />
+          <button type="submit">Set name</button>
+        </form>
+      )}
 
       {myRoomId === null ? <Arcade /> : <WaitingRoom roomId={myRoomId} />}
     </main>

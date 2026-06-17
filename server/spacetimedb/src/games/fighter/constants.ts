@@ -28,17 +28,30 @@ export interface MoveDef {
   chip: number;      // damage dealt on block
 }
 
-// Per-attack frame data — the single combat tuning table.
+// Per-attack frame data — the single combat tuning table. Tuned snappy: short
+// startup + recovery so moves don't linger. (skeleton.ts mirrors these windows.)
 export const MOVES: Record<Exclude<AttackKind, 'none'>, MoveDef> = {
-  light: { startup: 3, activeTo: 6,  total: 9,  range: 70, dmg: 6,  hitstun: 10, kb: 120, hitsCrouch: true,  blockstun: 8,  chip: 0 },
-  heavy: { startup: 7, activeTo: 13, total: 22, range: 95, dmg: 13, hitstun: 18, kb: 340, hitsCrouch: false, blockstun: 12, chip: 2 },
-  air:   { startup: 3, activeTo: 15, total: 18, range: 75, dmg: 8,  hitstun: 14, kb: 200, hitsCrouch: false, blockstun: 10, chip: 1 },
-  low:   { startup: 5, activeTo: 10, total: 16, range: 75, dmg: 5,  hitstun: 12, kb: 120, hitsCrouch: true,  blockstun: 8,  chip: 0 },
+  light: { startup: 2, activeTo: 5,  total: 7,  range: 70, dmg: 6,  hitstun: 8,  kb: 120, hitsCrouch: true,  blockstun: 6, chip: 0 },
+  heavy: { startup: 5, activeTo: 10, total: 16, range: 95, dmg: 13, hitstun: 13, kb: 340, hitsCrouch: false, blockstun: 9, chip: 2 },
+  air:   { startup: 3, activeTo: 12, total: 15, range: 75, dmg: 8,  hitstun: 11, kb: 200, hitsCrouch: false, blockstun: 8, chip: 1 },
+  low:   { startup: 4, activeTo: 8,  total: 12, range: 75, dmg: 5,  hitstun: 9,  kb: 120, hitsCrouch: true,  blockstun: 6, chip: 0 },
 };
 
 export const DASH_TAP_WINDOW = 9;  // frames between taps to trigger a dash
-export const DASH_SPEED = 620;
-export const DASH_FRAMES = 8;
+export const DASH_SPEED = 640;
+export const DASH_FRAMES = 6;
+
+// ---- Stamina ----
+// Jumping, holding block, and getting hit while blocking spend stamina. It
+// regenerates after a short idle delay; you cannot jump/block while empty, and
+// fully draining it imposes a longer cooldown before regen resumes.
+export const MAX_STAMINA = 100;
+export const JUMP_COST = 25;           // per jump
+export const BLOCK_DRAIN = 0.55;       // per frame while holding block (~16/s)
+export const BLOCK_HIT_COST = 18;      // chunk lost when a hit is blocked
+export const STAMINA_REGEN = 0.8;      // per frame once regen starts (~24/s)
+export const REGEN_DELAY = 45;         // ~1.5s after the last drain before regen
+export const EMPTY_REGEN_DELAY = 105;  // ~3.5s if you fully ran out
 
 export const ROUND_SECONDS = 40;       // shorter so passive rounds don't drag
 export const ROUNDS_TO_WIN = 2;

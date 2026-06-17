@@ -5,9 +5,11 @@ export const FIGHTER_H = 120;
 export const CROUCH_H = 78; // crouched silhouette height (head sits near here)
 export const MAX_HP = 100;
 
-export const CANVAS_W = 800;
-export const CANVAS_H = 360;
-export const GROUND_PX = CANVAS_H - 40; // canvas y of the ground line
+export const CANVAS_W = 1000;
+export const CANVAS_H = 460;
+export const GROUND_PX = CANVAS_H - 50;     // canvas y of the ground line
+export const SCALE = CANVAS_W / ARENA_W;    // arena units → canvas px (1.25)
+export const MAX_STAMINA = 100;
 
 // Best-of-3: how many round-wins fill the pip row under each HP bar.
 export const ROUNDS_TO_WIN = 2;

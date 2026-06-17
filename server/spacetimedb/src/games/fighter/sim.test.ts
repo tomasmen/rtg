@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { step, initialFighter, type Inputs, type MatchState } from './sim';
 import {
   ARENA_W, FIGHTER_W, MOVE_SPEED, DT, GROUND_Y, MAX_HP, MOVES,
+  JUMP_COST, BLOCK_HIT_COST,
 } from './constants';
 
 const NEUTRAL: Inputs = { moveX: 0, jump: false, light: false, heavy: false, block: false, crouch: false };
@@ -276,5 +277,58 @@ describe('review fixes', () => {
     expect(s.fighters[0].phase).toBe('dash');
     expect(s.fighters[0].vx).toBeLessThan(0);  // retreating left
     expect(s.fighters[0].facing).toBe(1);      // still facing the opponent
+  });
+});
+
+describe('stamina', () => {
+  it('jumping spends stamina', () => {
+    const a = initialFighter(0); const b = initialFighter(1);
+    const start = a.stamina;
+    let s = m(a, b);
+    s = step(s, [{ ...NEUTRAL, jump: true }, NEUTRAL], DT);
+    expect(s.fighters[0].phase).toBe('jump');
+    expect(s.fighters[0].stamina).toBe(start - JUMP_COST);
+  });
+
+  it('cannot jump below the stamina cost', () => {
+    const a = initialFighter(0); const b = initialFighter(1);
+    a.stamina = JUMP_COST - 1;
+    let s = m(a, b);
+    s = step(s, [{ ...NEUTRAL, jump: true }, NEUTRAL], DT);
+    expect(s.fighters[0].phase).not.toBe('jump');
+    expect(s.fighters[0].vy).toBeLessThanOrEqual(0);
+  });
+
+  it('holding block drains stamina, and you cannot block at zero', () => {
+    const a = initialFighter(0); const b = initialFighter(1);
+    let s = m(a, b);
+    const start = s.fighters[0].stamina;
+    for (let i = 0; i < 10; i++) s = step(s, [{ ...NEUTRAL, block: true }, NEUTRAL], DT);
+    expect(s.fighters[0].phase).toBe('block');
+    expect(s.fighters[0].stamina).toBeLessThan(start);
+    // empty: block input is ignored
+    s.fighters[0].stamina = 0; s.fighters[0].staminaCd = 0;
+    s = step(s, [{ ...NEUTRAL, block: true }, NEUTRAL], DT);
+    expect(s.fighters[0].phase).not.toBe('block');
+  });
+
+  it('stamina regenerates after the idle cooldown', () => {
+    const a = initialFighter(0); const b = initialFighter(1);
+    a.stamina = 40; a.staminaCd = 0;
+    let s = m(a, b);
+    for (let i = 0; i < 30; i++) s = step(s, [NEUTRAL, NEUTRAL], DT);
+    expect(s.fighters[0].stamina).toBeGreaterThan(40);
+  });
+
+  it('blocking a hit drains a chunk of stamina', () => {
+    const a = initialFighter(0); const b = initialFighter(1);
+    a.x = 360; b.x = 470; // slot0 heavy onto blocking slot1
+    let s = m(a, b);
+    const start = s.fighters[1].stamina;
+    for (let i = 0; i < MOVES.heavy.total; i++) {
+      s = step(s, [{ ...NEUTRAL, heavy: true }, { ...NEUTRAL, block: true }], DT);
+    }
+    expect(['block', 'blockstun']).toContain(s.fighters[1].phase); // still guarding
+    expect(s.fighters[1].stamina).toBeLessThanOrEqual(start - BLOCK_HIT_COST + 1);
   });
 });

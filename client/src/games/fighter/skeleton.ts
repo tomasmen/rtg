@@ -264,7 +264,7 @@ function applyAttack(
   switch (kind) {
     case 'light': {
       // arm jab from the shoulder, roughly torso-upper height
-      const r = reach(phaseFrame, 3, 6, 9);
+      const r = reach(phaseFrame, 2, 5, 7);
       const x = 18 + r * 40;
       s.setHandFront({ x, y: SHOULDER_Y - 4 });
       s.setElbowFront({ x: 10 + r * 18, y: SHOULDER_Y - 6 });
@@ -276,7 +276,7 @@ function applyAttack(
       // committed front kick: the support leg stays braced back while the kicking
       // leg drives forward at mid-torso height with the knee ON the pelvis→foot
       // line (no backward-bent knee), torso leans back for balance, back arm out.
-      const r = reach(phaseFrame, 7, 13, 22);
+      const r = reach(phaseFrame, 5, 10, 16);
       s.setFootFront({ x: STANCE + r * 56, y: 36 + r * 20 });  // foot → ~(70, 56)
       s.setKneeFront({ x: STANCE + r * 28, y: 46 + r * 6 });   // knee tracks the leg line
       s.setFootBack({ x: -STANCE - 12, y: 0 });                // support leg braced back
@@ -289,7 +289,7 @@ function applyAttack(
     }
     case 'air': {
       // downward-angled air kick
-      const r = reach(phaseFrame, 3, 15, 18);
+      const r = reach(phaseFrame, 3, 12, 15);
       const x = STANCE + r * 40;
       s.setFootFront({ x, y: 18 - r * 16 });
       s.setKneeFront({ x: STANCE + r * 20, y: 36 });
@@ -300,7 +300,7 @@ function applyAttack(
     }
     case 'low': {
       // low poke: a crouched kick that stays near the floor
-      const r = reach(phaseFrame, 5, 10, 16);
+      const r = reach(phaseFrame, 4, 8, 12);
       const x = STANCE + r * 46;
       s.setFootFront({ x, y: 10 });
       s.setKneeFront({ x: STANCE + r * 22, y: 18 });
