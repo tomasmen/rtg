@@ -222,7 +222,7 @@ function drawHp(
   const sp = Math.max(0, Math.min(1, stamina / MAX_STAMINA));
   g.fillStyle = '#23262f';
   g.fillRect(x, 36, w, 5);
-  g.fillStyle = sp > 0.25 ? '#60a5fa' : '#1e3a8a';
+  g.fillStyle = sp > 0.3 ? '#60a5fa' : '#ef4444'; // red when too low to act
   const sw = w * sp;
   if (right) g.fillRect(x + w - sw, 36, sw, 5);
   else g.fillRect(x, 36, sw, 5);

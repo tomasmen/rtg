@@ -73,6 +73,7 @@ export const Fighter = __t.object("Fighter", {
   stunFrames: __t.u32(),
   stamina: __t.f32(),
   staminaCd: __t.u32(),
+  exhausted: __t.bool(),
   attackCd: __t.u32(),
   prevJump: __t.bool(),
   prevLight: __t.bool(),

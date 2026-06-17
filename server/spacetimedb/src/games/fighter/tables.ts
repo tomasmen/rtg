@@ -44,6 +44,7 @@ export const fighter = table(
     stunFrames: t.u32(),
     stamina: t.f32(),
     staminaCd: t.u32(),
+    exhausted: t.bool(),
     attackCd: t.u32(),
     prevJump: t.bool(),
     prevLight: t.bool(),

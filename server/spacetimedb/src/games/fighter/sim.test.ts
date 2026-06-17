@@ -331,6 +331,24 @@ describe('stamina', () => {
     expect(['block', 'blockstun']).toContain(s.fighters[1].phase); // still guarding
     expect(s.fighters[1].stamina).toBeLessThanOrEqual(start - BLOCK_HIT_COST + 1);
   });
+
+  it('while winded, holding block does not re-extend the cooldown (regen proceeds)', () => {
+    const a = initialFighter(0); const b = initialFighter(1);
+    a.stamina = 0; a.exhausted = true; a.staminaCd = 0; // recovery about to start
+    let s = m(a, b);
+    for (let i = 0; i < 12; i++) s = step(s, [{ ...NEUTRAL, block: true }, NEUTRAL], DT);
+    expect(s.fighters[0].phase).not.toBe('block');    // still can't block while winded
+    expect(s.fighters[0].stamina).toBeGreaterThan(5); // regen proceeded (not pinned near 0)
+  });
+
+  it('exhaustion clears once stamina regenerates to the usable threshold', () => {
+    const a = initialFighter(0); const b = initialFighter(1);
+    a.stamina = 0; a.exhausted = true; a.staminaCd = 0;
+    let s = m(a, b);
+    for (let i = 0; i < 40; i++) s = step(s, [NEUTRAL, NEUTRAL], DT);
+    expect(s.fighters[0].exhausted).toBe(false);
+    expect(s.fighters[0].stamina).toBeGreaterThanOrEqual(25);
+  });
 });
 
 describe('attack cooldown + heavy stamina', () => {

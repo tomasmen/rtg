@@ -2,7 +2,7 @@ import {
   ARENA_W, GROUND_Y, FIGHTER_W, FIGHTER_H, CROUCH_H, GRAVITY, MOVE_SPEED,
   AIR_CONTROL, JUMP_V, MAX_HP, GROUND_FRICTION,
   DASH_TAP_WINDOW, DASH_SPEED, DASH_FRAMES, ATTACK_COOLDOWN,
-  MAX_STAMINA, JUMP_COST, HEAVY_COST, BLOCK_DRAIN, BLOCK_HIT_COST, STAMINA_REGEN, REGEN_DELAY, EMPTY_REGEN_DELAY,
+  MAX_STAMINA, JUMP_COST, HEAVY_COST, BLOCK_DRAIN, BLOCK_HIT_COST, STAMINA_REGEN, REGEN_DELAY, EMPTY_REGEN_DELAY, STAMINA_USABLE,
   MOVES, type AttackKind,
 } from './constants';
 
@@ -19,6 +19,7 @@ export interface FighterState {
   stunFrames: number;         // length of the current hitstun/blockstun (frames)
   stamina: number;            // 0..MAX_STAMINA — spent by jump/block/heavy
   staminaCd: number;          // frames until stamina regen may resume
+  exhausted: boolean;         // fully drained — no draining actions until regen >= STAMINA_USABLE
   attackCd: number;           // recovery gap before the next attack may start
   // input-edge & dash memory (sim-internal; persisted on the fighter row):
   prevJump: boolean; prevLight: boolean; prevHeavy: boolean;
@@ -60,6 +61,7 @@ export function initialFighter(slot: number): FighterState {
     stunFrames: 0,
     stamina: MAX_STAMINA,
     staminaCd: 0,
+    exhausted: false,
     attackCd: 0,
     prevJump: false,
     prevLight: false,
@@ -86,6 +88,18 @@ function startAttack(f: FighterState, kind: AttackKind): void {
   f.attackKind = kind;
   f.attackHasHit = false;
   f.phaseFrame = 0;
+}
+
+// Settle the regen cooldown after spending stamina; if fully drained, flag
+// exhaustion (no draining actions until regen climbs back to STAMINA_USABLE).
+function spendStaminaSettle(f: FighterState): void {
+  if (f.stamina <= 0) {
+    f.stamina = 0;
+    f.exhausted = true;
+    f.staminaCd = EMPTY_REGEN_DELAY;
+  } else {
+    f.staminaCd = REGEN_DELAY;
+  }
 }
 
 // Advance one fighter's locomotion + phase by a fixed timestep. Pure (returns a new state).
@@ -133,11 +147,11 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number): FighterState 
   if (!locked) {
     if (grounded) {
       // grounded action priority: heavy -> light/low -> dash -> block -> crouch -> locomotion(+jump)
-      if (heavyEdge && f.attackCd === 0 && f.stamina >= HEAVY_COST) {
+      if (heavyEdge && f.attackCd === 0 && !f.exhausted && f.stamina >= HEAVY_COST) {
         startAttack(f, 'heavy');
         f.vx = 0;
         f.stamina -= HEAVY_COST;
-        f.staminaCd = f.stamina <= 0 ? EMPTY_REGEN_DELAY : REGEN_DELAY;
+        spendStaminaSettle(f);
       } else if (lightEdge && f.attackCd === 0) {
         startAttack(f, input.crouch ? 'low' : 'light');
         f.vx = 0;
@@ -148,7 +162,7 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number): FighterState 
         f.phase = 'dash';
         f.phaseFrame = 0;
         f.vx = dashTriggered * DASH_SPEED;
-      } else if (input.block && f.stamina > 0) {
+      } else if (input.block && f.stamina > 0 && !f.exhausted) {
         f.phase = 'block';
         f.vx = 0;
       } else if (input.crouch) {
@@ -156,12 +170,12 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number): FighterState 
         f.vx = 0;
       } else {
         f.vx = input.moveX * MOVE_SPEED;
-        if (jumpEdge && f.stamina >= JUMP_COST) {
+        if (jumpEdge && !f.exhausted && f.stamina >= JUMP_COST) {
           f.vy = JUMP_V;
           f.phase = 'jump';
           f.airAttackUsed = false; // fresh jump → air attack available again
           f.stamina -= JUMP_COST;
-          f.staminaCd = f.stamina <= 0 ? EMPTY_REGEN_DELAY : REGEN_DELAY;
+          spendStaminaSettle(f);
         } else {
           f.phase = input.moveX !== 0 ? 'walk' : 'idle';
         }
@@ -220,15 +234,19 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number): FighterState 
     f.stamina -= BLOCK_DRAIN;
     if (f.stamina <= 0) {
       f.stamina = 0;
+      f.exhausted = true;
       f.staminaCd = EMPTY_REGEN_DELAY;
       f.phase = 'idle'; // out of stamina → the guard drops
     } else {
       f.staminaCd = REGEN_DELAY;
     }
   } else if (f.staminaCd > 0) {
+    // Recovering: futile attempts (gated by `exhausted`/cost) never reach here,
+    // so a depleted player's cooldown ticks down uninterrupted.
     f.staminaCd -= 1;
   } else if (f.stamina < MAX_STAMINA) {
     f.stamina = Math.min(MAX_STAMINA, f.stamina + STAMINA_REGEN);
+    if (f.exhausted && f.stamina >= STAMINA_USABLE) f.exhausted = false; // recovered enough to act
   }
 
   if (f.attackCd > 0) f.attackCd -= 1;
@@ -295,7 +313,8 @@ function resolveHit(
     vicLive.stunFrames = move.blockstun;
     vicLive.vx = dir * (move.kb * 0.25); // small pushback
     vicLive.stamina = Math.max(0, vicLive.stamina - BLOCK_HIT_COST); // blocking a hit costs a chunk
-    vicLive.staminaCd = vicLive.stamina <= 0 ? EMPTY_REGEN_DELAY : REGEN_DELAY;
+    if (vicLive.stamina <= 0) { vicLive.exhausted = true; vicLive.staminaCd = EMPTY_REGEN_DELAY; }
+    else vicLive.staminaCd = REGEN_DELAY;
     events.push({ kind: 'block', victimSlot, x: contactX, y: contactY, amount: move.chip });
   } else {
     vicLive.hp -= move.dmg;

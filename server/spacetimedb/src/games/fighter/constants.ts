@@ -58,6 +58,7 @@ export const BLOCK_HIT_COST = 18;      // chunk lost when a hit is blocked
 export const STAMINA_REGEN = 0.8;      // per frame once regen starts (~24/s)
 export const REGEN_DELAY = 45;         // ~1.5s after the last drain before regen
 export const EMPTY_REGEN_DELAY = 105;  // ~3.5s if you fully ran out
+export const STAMINA_USABLE = 25;      // once fully drained, must regen back to this before acting again
 
 export const ROUND_SECONDS = 40;       // shorter so passive rounds don't drag
 export const ROUNDS_TO_WIN = 2;
