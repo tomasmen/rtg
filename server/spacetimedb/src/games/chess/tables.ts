@@ -14,5 +14,11 @@ export const chessGame = table(
     legalMoves: t.string(),  // comma-separated UCI for the side to move ('' when over)
     lastMove: t.string(),    // UCI of the last move ('' initially)
     check: t.bool(),         // side to move is in check
+    // --- clock (only meaningful when `clocked`) ---
+    clocked: t.bool(),       // whether this game uses a chess clock
+    whiteMs: t.i64(),        // white's remaining time (ms) as of turnStartMicros
+    blackMs: t.i64(),        // black's remaining time (ms) as of turnStartMicros
+    incMs: t.i64(),          // increment added to the mover's clock after each move
+    turnStartMicros: t.u64(),// server time the side-to-move's clock started ticking
   }
 );

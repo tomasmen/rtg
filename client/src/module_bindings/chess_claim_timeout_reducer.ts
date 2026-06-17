@@ -10,7 +10,4 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export default {
-  gameId: __t.string(),
-  settings: __t.string(),
-};
+export default {};

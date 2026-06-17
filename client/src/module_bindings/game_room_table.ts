@@ -16,4 +16,5 @@ export default __t.row({
   status: __t.string(),
   createdBy: __t.identity().name("created_by"),
   createdAt: __t.timestamp().name("created_at"),
+  settings: __t.string(),
 });

@@ -34,6 +34,7 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
+import ChessClaimTimeoutReducer from "./chess_claim_timeout_reducer";
 import ChessMoveReducer from "./chess_move_reducer";
 import ChessResignReducer from "./chess_resign_reducer";
 import CreateRoomReducer from "./create_room_reducer";
@@ -163,6 +164,7 @@ const tablesSchema = __schema({
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("chess_claim_timeout", ChessClaimTimeoutReducer),
   __reducerSchema("chess_move", ChessMoveReducer),
   __reducerSchema("chess_resign", ChessResignReducer),
   __reducerSchema("create_room", CreateRoomReducer),

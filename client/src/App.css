@@ -433,3 +433,120 @@
 .promo-choice:hover {
   background: #3a3a44;
 }
+
+/* ---- tile actions + create-room settings panel ---- */
+.tile-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tile button.secondary {
+  background: transparent;
+  color: var(--text-h);
+  border: 1px solid var(--border);
+}
+.tile button.secondary:hover {
+  border-color: var(--accent-border);
+}
+.create-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+.create-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.create-panel h3 {
+  margin: 0;
+  color: var(--text-h);
+}
+.tc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.tc-grid button {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent);
+  color: #1a1024;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tc-grid button:hover {
+  filter: brightness(1.08);
+}
+.tc-custom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: var(--text);
+}
+.tc-custom input {
+  width: 56px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #0f1018;
+  color: var(--text-h);
+  font: inherit;
+}
+.tc-custom button {
+  margin-left: auto;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent);
+  color: #1a1024;
+  font-weight: 600;
+  cursor: pointer;
+}
+.create-cancel {
+  align-self: flex-end;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* ---- chess clocks ---- */
+.chess-clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-h);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 16px;
+  min-width: 96px;
+  text-align: center;
+}
+.chess-clock.active {
+  border-color: var(--online);
+  box-shadow: 0 0 10px rgba(80, 220, 120, 0.4);
+}
+.chess-clock.low {
+  color: #f87171;
+}
+.chess-clock.active.low {
+  border-color: #f87171;
+  box-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
+}

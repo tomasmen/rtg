@@ -19,4 +19,9 @@ export default __t.row({
   legalMoves: __t.string().name("legal_moves"),
   lastMove: __t.string().name("last_move"),
   check: __t.bool(),
+  clocked: __t.bool(),
+  whiteMs: __t.i64().name("white_ms"),
+  blackMs: __t.i64().name("black_ms"),
+  incMs: __t.i64().name("inc_ms"),
+  turnStartMicros: __t.u64().name("turn_start_micros"),
 });

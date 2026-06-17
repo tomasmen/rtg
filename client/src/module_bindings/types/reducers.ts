@@ -6,6 +6,7 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
+import ChessClaimTimeoutReducer from "../chess_claim_timeout_reducer";
 import ChessMoveReducer from "../chess_move_reducer";
 import ChessResignReducer from "../chess_resign_reducer";
 import CreateRoomReducer from "../create_room_reducer";
@@ -15,6 +16,7 @@ import QuickMatchReducer from "../quick_match_reducer";
 import SetInputReducer from "../set_input_reducer";
 import SetNameReducer from "../set_name_reducer";
 
+export type ChessClaimTimeoutParams = __Infer<typeof ChessClaimTimeoutReducer>;
 export type ChessMoveParams = __Infer<typeof ChessMoveReducer>;
 export type ChessResignParams = __Infer<typeof ChessResignReducer>;
 export type CreateRoomParams = __Infer<typeof CreateRoomReducer>;

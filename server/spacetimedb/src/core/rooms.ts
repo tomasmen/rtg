@@ -17,7 +17,7 @@ function setLocation(ctx: any, location: string): void {
 }
 
 // Create a fresh waiting room for `gameId`, seat the caller at slot 0.
-function doCreateRoom(ctx: any, gameId: string): void {
+function doCreateRoom(ctx: any, gameId: string, settings: string): void {
   const game = getGame(gameId);
   if (!game) throw new Error(`unknown game: ${gameId}`);
   const room = ctx.db.gameRoom.insert({
@@ -26,6 +26,7 @@ function doCreateRoom(ctx: any, gameId: string): void {
     status: 'waiting',
     createdBy: ctx.sender,
     createdAt: ctx.timestamp,
+    settings,
   });
   ctx.db.roomMember.insert({ id: 0n, roomId: room.id, identity: ctx.sender, slot: 0 });
   setLocation(ctx, `${gameId}:${room.id}`);
@@ -74,10 +75,13 @@ export function removeFromRooms(ctx: any): void {
   }
 }
 
-export const createRoom = spacetimedb.reducer({ gameId: t.string() }, (ctx, { gameId }) => {
-  if (inARoom(ctx)) throw new Error('already in a room');
-  doCreateRoom(ctx, gameId);
-});
+export const createRoom = spacetimedb.reducer(
+  { gameId: t.string(), settings: t.string() },
+  (ctx, { gameId, settings }) => {
+    if (inARoom(ctx)) throw new Error('already in a room');
+    doCreateRoom(ctx, gameId, settings);
+  }
+);
 
 export const joinRoom = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId }) => {
   if (inARoom(ctx)) throw new Error('already in a room');
@@ -95,7 +99,7 @@ export const quickMatch = spacetimedb.reducer({ gameId: t.string() }, (ctx, { ga
     count: [...ctx.db.roomMember.roomId.filter(r.id)].length,
   }));
   const target = pickOpenRoomId(open, gameId, game.maxPlayers);
-  if (target === null) doCreateRoom(ctx, gameId);
+  if (target === null) doCreateRoom(ctx, gameId, ''); // quick-match rooms use default settings
   else doJoinRoom(ctx, target);
 });
 

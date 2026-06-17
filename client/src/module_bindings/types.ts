@@ -19,6 +19,11 @@ export const ChessGame = __t.object("ChessGame", {
   legalMoves: __t.string(),
   lastMove: __t.string(),
   check: __t.bool(),
+  clocked: __t.bool(),
+  whiteMs: __t.i64(),
+  blackMs: __t.i64(),
+  incMs: __t.i64(),
+  turnStartMicros: __t.u64(),
 });
 export type ChessGame = __Infer<typeof ChessGame>;
 
@@ -102,6 +107,7 @@ export const GameRoom = __t.object("GameRoom", {
   status: __t.string(),
   createdBy: __t.identity(),
   createdAt: __t.timestamp(),
+  settings: __t.string(),
 });
 export type GameRoom = __Infer<typeof GameRoom>;
 

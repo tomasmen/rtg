@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useTable, useReducer } from 'spacetimedb/react';
 import { tables, reducers } from '../module_bindings';
-import { GAMES } from '../games/registry';
+import { GAMES, type GameMeta } from '../games/registry';
+import { CreateRoomPanel } from './CreateRoomPanel';
 
 // The arcade lobby: game tiles (quick-match), a list of open rooms to join, and
 // the online-players list.
@@ -10,6 +12,7 @@ export function Arcade() {
   const [members] = useTable(tables.roomMember);
   const quickMatch = useReducer(reducers.quickMatch);
   const joinRoom = useReducer(reducers.joinRoom);
+  const [creating, setCreating] = useState<GameMeta | null>(null);
 
   const online = players.filter(p => p.online);
   const waiting = rooms.filter(r => r.status === 'waiting');
@@ -22,7 +25,10 @@ export function Arcade() {
           <div className="tile" key={g.id}>
             <h3>{g.displayName}</h3>
             <p>{g.blurb}</p>
-            <button onClick={() => void quickMatch({ gameId: g.id })}>Quick match</button>
+            <div className="tile-actions">
+              <button onClick={() => void quickMatch({ gameId: g.id })}>Quick match</button>
+              <button className="secondary" onClick={() => setCreating(g)}>Create room</button>
+            </div>
           </div>
         ))}
       </section>
@@ -51,6 +57,14 @@ export function Arcade() {
           ))}
         </ul>
       </section>
+
+      {creating && (
+        <CreateRoomPanel
+          gameId={creating.id}
+          displayName={creating.displayName}
+          onClose={() => setCreating(null)}
+        />
+      )}
     </>
   );
 }

@@ -23,6 +23,7 @@ export const gameRoom = table(
     status: t.string(),
     createdBy: t.identity(),
     createdAt: t.timestamp(),
+    settings: t.string(), // per-game opaque config chosen at creation (e.g. chess time '5+3', '' = default)
   }
 );
 
