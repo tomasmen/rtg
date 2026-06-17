@@ -43,7 +43,12 @@ jobs:
           SPACETIME_TOKEN: ${{ secrets.SPACETIME_TOKEN }}
 
       - name: Publish to Maincloud
-        run: spacetime publish rtg --server maincloud -p server/spacetimedb -y
+        # Try an in-place publish first; if the schema changed in a way that needs
+        # a migration, fall back to --delete-data. All game state is ephemeral
+        # (presence, rooms, in-progress matches) so wiping on a schema change is safe.
+        run: |
+          spacetime publish rtg --server maincloud -p server/spacetimedb -y \
+            || spacetime publish rtg --server maincloud -p server/spacetimedb --delete-data -y
 
   deploy-client:
     name: Build + deploy client to Pages
