@@ -1,17 +1,25 @@
 import { useState, type FormEvent } from 'react';
 import { useTable, useReducer, useSpacetimeDB } from 'spacetimedb/react';
 import { tables, reducers } from './module_bindings';
+import { Arcade } from './arcade/Arcade';
+import { WaitingRoom } from './arcade/WaitingRoom';
 import './App.css';
 
 export default function App() {
   const { isActive, identity } = useSpacetimeDB();
-  const [players, ready] = useTable(tables.player);
+  const [players] = useTable(tables.player);
   const setName = useReducer(reducers.setName);
   const [draft, setDraft] = useState('');
 
   const myHex = identity?.toHexString();
   const me = players.find(p => p.identity.toHexString() === myHex);
-  const onlineCount = players.filter(p => p.online).length;
+
+  // location is 'arcade' or '<gameId>:<roomId>' — route on it.
+  const myRoomId = (() => {
+    if (!me || !me.location || me.location === 'arcade') return null;
+    const parts = me.location.split(':');
+    return parts.length === 2 ? BigInt(parts[1]) : null;
+  })();
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -51,24 +59,7 @@ export default function App() {
         <button type="submit">Set name</button>
       </form>
 
-      <section className="players">
-        <h2>{onlineCount} online{ready ? '' : ' …'}</h2>
-        <ul>
-          {players
-            .slice()
-            .sort((a, b) => Number(b.online) - Number(a.online))
-            .map(p => {
-              const hex = p.identity.toHexString();
-              return (
-                <li key={hex} className={p.online ? 'online' : 'offline'}>
-                  <span className="dot" />
-                  <span className="pname">{p.displayName || 'anon'}</span>
-                  {hex === myHex && <span className="you">you</span>}
-                </li>
-              );
-            })}
-        </ul>
-      </section>
+      {myRoomId === null ? <Arcade /> : <WaitingRoom roomId={myRoomId} />}
     </main>
   );
 }
