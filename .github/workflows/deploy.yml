@@ -21,6 +21,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install module dependencies
+        run: npm --prefix server/spacetimedb ci
+
       - name: Install SpacetimeDB CLI
         run: |
           curl -sSf https://install.spacetimedb.com | sh -s -- --yes
