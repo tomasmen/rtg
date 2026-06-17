@@ -11,6 +11,7 @@ export interface GameDef {
 
 export const GAMES: readonly GameDef[] = [
   { id: 'fighter', displayName: 'Fighter', minPlayers: 2, maxPlayers: 2, realtime: true },
+  { id: 'chess', displayName: 'Chess', minPlayers: 2, maxPlayers: 2, realtime: false },
 ];
 
 export function getGame(id: string): GameDef | undefined {

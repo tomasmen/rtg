@@ -34,6 +34,8 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
+import ChessMoveReducer from "./chess_move_reducer";
+import ChessResignReducer from "./chess_resign_reducer";
 import CreateRoomReducer from "./create_room_reducer";
 import JoinRoomReducer from "./join_room_reducer";
 import LeaveRoomReducer from "./leave_room_reducer";
@@ -44,6 +46,7 @@ import SetNameReducer from "./set_name_reducer";
 // Import all procedure arg schemas
 
 // Import all table schema definitions
+import ChessGameRow from "./chess_game_table";
 import FightEventRow from "./fight_event_table";
 import FightInputRow from "./fight_input_table";
 import FightMatchRow from "./fight_match_table";
@@ -56,6 +59,17 @@ import RoomMemberRow from "./room_member_table";
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
+  chessGame: __table({
+    name: 'chess_game',
+    indexes: [
+      { accessor: 'roomId', name: 'chess_game_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'chess_game_room_id_key', constraint: 'unique', columns: ['roomId'] },
+    ],
+  }, ChessGameRow),
   fightEvent: __table({
     name: 'fight_event',
     indexes: [
@@ -149,6 +163,8 @@ const tablesSchema = __schema({
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("chess_move", ChessMoveReducer),
+  __reducerSchema("chess_resign", ChessResignReducer),
   __reducerSchema("create_room", CreateRoomReducer),
   __reducerSchema("join_room", JoinRoomReducer),
   __reducerSchema("leave_room", LeaveRoomReducer),

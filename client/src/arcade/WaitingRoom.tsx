@@ -1,6 +1,7 @@
 import { useTable, useReducer } from 'spacetimedb/react';
 import { tables, reducers } from '../module_bindings';
 import { FighterGame } from '../games/fighter/FighterGame';
+import { ChessGame } from '../games/chess/ChessGame';
 
 // Shown when the player is in a room: the seated members, the room status, and a
 // Leave button. When status flips to 'active', gameplay (Phase 3) takes over.
@@ -16,6 +17,9 @@ export function WaitingRoom({ roomId }: { roomId: bigint }) {
   // canvas game, which owns its own leave control.
   if (room?.gameId === 'fighter' && (room.status === 'active' || room.status === 'finished')) {
     return <FighterGame roomId={roomId} />;
+  }
+  if (room?.gameId === 'chess' && (room.status === 'active' || room.status === 'finished')) {
+    return <ChessGame roomId={roomId} />;
   }
 
   const seated = members

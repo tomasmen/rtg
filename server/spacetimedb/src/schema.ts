@@ -1,6 +1,7 @@
 import { schema } from 'spacetimedb/server';
 import { player, gameRoom, roomMember } from './core/tables';
 import { fightMatch, fighter, fightInput, fightEvent, fightTick } from './games/fighter/tables';
+import { chessGame } from './games/chess/tables';
 
 // The module schema instance lives in its own file so that reducer files can
 // import it (`import spacetimedb from '../schema'`) without creating a circular
@@ -15,5 +16,6 @@ const spacetimedb = schema({
   fightInput,
   fightEvent,
   fightTick,
+  chessGame,
 });
 export default spacetimedb;

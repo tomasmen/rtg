@@ -10,6 +10,18 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
+export const ChessGame = __t.object("ChessGame", {
+  roomId: __t.u64(),
+  fen: __t.string(),
+  turn: __t.string(),
+  status: __t.string(),
+  winner: __t.i8(),
+  legalMoves: __t.string(),
+  lastMove: __t.string(),
+  check: __t.bool(),
+});
+export type ChessGame = __Infer<typeof ChessGame>;
+
 export const FightEvent = __t.object("FightEvent", {
   roomId: __t.u64(),
   kind: __t.string(),
