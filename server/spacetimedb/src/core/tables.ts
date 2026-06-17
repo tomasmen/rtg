@@ -13,3 +13,26 @@ export const player = table(
     location: t.string(),
   }
 );
+
+// A room groups players for one game session. status: waiting → active → finished.
+export const gameRoom = table(
+  { name: 'game_room', public: true },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    gameId: t.string().index('btree'),
+    status: t.string(),
+    createdBy: t.identity(),
+    createdAt: t.timestamp(),
+  }
+);
+
+// Membership of a player in a room. `slot` is the player's seat (0..maxPlayers-1).
+export const roomMember = table(
+  { name: 'room_member', public: true },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    roomId: t.u64().index('btree'),
+    identity: t.identity().index('btree'),
+    slot: t.u8(),
+  }
+);
