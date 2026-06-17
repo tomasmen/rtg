@@ -38,11 +38,15 @@ import CreateRoomReducer from "./create_room_reducer";
 import JoinRoomReducer from "./join_room_reducer";
 import LeaveRoomReducer from "./leave_room_reducer";
 import QuickMatchReducer from "./quick_match_reducer";
+import SetInputReducer from "./set_input_reducer";
 import SetNameReducer from "./set_name_reducer";
 
 // Import all procedure arg schemas
 
 // Import all table schema definitions
+import FightInputRow from "./fight_input_table";
+import FightMatchRow from "./fight_match_table";
+import FighterRow from "./fighter_table";
 import GameRoomRow from "./game_room_table";
 import PlayerRow from "./player_table";
 import RoomMemberRow from "./room_member_table";
@@ -51,6 +55,45 @@ import RoomMemberRow from "./room_member_table";
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
+  fightInput: __table({
+    name: 'fight_input',
+    indexes: [
+      { accessor: 'identity', name: 'fight_input_identity_idx_btree', algorithm: 'btree', columns: [
+        'identity',
+      ] },
+    ],
+    constraints: [
+      { name: 'fight_input_identity_key', constraint: 'unique', columns: ['identity'] },
+    ],
+  }, FightInputRow),
+  fightMatch: __table({
+    name: 'fight_match',
+    indexes: [
+      { accessor: 'roomId', name: 'fight_match_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'fight_match_room_id_key', constraint: 'unique', columns: ['roomId'] },
+    ],
+  }, FightMatchRow),
+  fighter: __table({
+    name: 'fighter',
+    indexes: [
+      { accessor: 'id', name: 'fighter_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'identity', name: 'fighter_identity_idx_btree', algorithm: 'btree', columns: [
+        'identity',
+      ] },
+      { accessor: 'roomId', name: 'fighter_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'fighter_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, FighterRow),
   gameRoom: __table({
     name: 'game_room',
     indexes: [
@@ -101,6 +144,7 @@ const reducersSchema = __reducers(
   __reducerSchema("join_room", JoinRoomReducer),
   __reducerSchema("leave_room", LeaveRoomReducer),
   __reducerSchema("quick_match", QuickMatchReducer),
+  __reducerSchema("set_input", SetInputReducer),
   __reducerSchema("set_name", SetNameReducer),
 );
 

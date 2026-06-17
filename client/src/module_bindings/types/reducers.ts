@@ -10,11 +10,13 @@ import CreateRoomReducer from "../create_room_reducer";
 import JoinRoomReducer from "../join_room_reducer";
 import LeaveRoomReducer from "../leave_room_reducer";
 import QuickMatchReducer from "../quick_match_reducer";
+import SetInputReducer from "../set_input_reducer";
 import SetNameReducer from "../set_name_reducer";
 
 export type CreateRoomParams = __Infer<typeof CreateRoomReducer>;
 export type JoinRoomParams = __Infer<typeof JoinRoomReducer>;
 export type LeaveRoomParams = __Infer<typeof LeaveRoomReducer>;
 export type QuickMatchParams = __Infer<typeof QuickMatchReducer>;
+export type SetInputParams = __Infer<typeof SetInputReducer>;
 export type SetNameParams = __Infer<typeof SetNameReducer>;
 

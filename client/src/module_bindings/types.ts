@@ -10,6 +10,48 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
+export const FightInput = __t.object("FightInput", {
+  identity: __t.identity(),
+  roomId: __t.u64(),
+  moveX: __t.i8(),
+  jump: __t.bool(),
+  attack: __t.bool(),
+  block: __t.bool(),
+  seq: __t.u32(),
+});
+export type FightInput = __Infer<typeof FightInput>;
+
+export const FightMatch = __t.object("FightMatch", {
+  roomId: __t.u64(),
+  status: __t.string(),
+  tick: __t.u64(),
+  endsAtMicros: __t.u64(),
+});
+export type FightMatch = __Infer<typeof FightMatch>;
+
+export const FightTick = __t.object("FightTick", {
+  scheduledId: __t.u64(),
+  scheduledAt: __t.scheduleAt(),
+  roomId: __t.u64(),
+});
+export type FightTick = __Infer<typeof FightTick>;
+
+export const Fighter = __t.object("Fighter", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  identity: __t.identity(),
+  slot: __t.u8(),
+  x: __t.f32(),
+  y: __t.f32(),
+  vx: __t.f32(),
+  vy: __t.f32(),
+  facing: __t.i8(),
+  hp: __t.f32(),
+  phase: __t.string(),
+  phaseFrame: __t.u32(),
+});
+export type Fighter = __Infer<typeof Fighter>;
+
 export const GameRoom = __t.object("GameRoom", {
   id: __t.u64(),
   gameId: __t.string(),

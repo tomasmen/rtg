@@ -2,6 +2,7 @@ import { t } from 'spacetimedb/server';
 import spacetimedb from '../schema';
 import { getGame } from '../games/registry';
 import { nextSlot, isFull, pickOpenRoomId, type OpenRoom } from './roomLogic';
+import { startGame, endGame } from '../games/dispatch';
 
 // ctx is the SpacetimeDB ReducerContext; typed as `any` here because its precise
 // generic type is module-internal. DB shape is enforced at the table layer.
@@ -43,7 +44,9 @@ function doJoinRoom(ctx: any, roomId: bigint): void {
   ctx.db.roomMember.insert({ id: 0n, roomId, identity: ctx.sender, slot });
   setLocation(ctx, `${room.gameId}:${roomId}`);
   if (isFull(current.length + 1, game.maxPlayers)) {
-    ctx.db.gameRoom.id.update({ ...room, status: 'active' });
+    const active = { ...room, status: 'active' };
+    ctx.db.gameRoom.id.update(active);
+    startGame(ctx, active);
   }
 }
 
@@ -59,6 +62,7 @@ export function removeFromRooms(ctx: any): void {
       if (remaining.length === 0) {
         ctx.db.gameRoom.id.delete(room.id);
       } else if (room.status === 'active') {
+        endGame(ctx, room);
         ctx.db.gameRoom.id.update({ ...room, status: 'finished' });
       }
     }
