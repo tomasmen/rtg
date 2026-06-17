@@ -13,6 +13,53 @@ const CHESS_PRESETS: { label: string; settings: string }[] = [
   { label: '30 + 0 · Classical', settings: '30+0' },
 ];
 
+// Fighter option menus (settings string is "t=<sec>;hp=<n>;stam=<preset>;rw=<n>").
+const FIGHTER_TIME = [
+  { v: 30, l: '30s' },
+  { v: 60, l: '60s' },
+  { v: 99, l: '99s' },
+  { v: 0, l: 'No limit' },
+];
+const FIGHTER_HP = [60, 100, 150, 200].map(v => ({ v, l: String(v) }));
+const FIGHTER_STAM = [
+  { v: 'off', l: 'Off' },
+  { v: 'casual', l: 'Casual' },
+  { v: 'normal', l: 'Normal' },
+  { v: 'hardcore', l: 'Hardcore' },
+];
+const FIGHTER_ROUNDS = [
+  { v: 1, l: 'Best of 1' },
+  { v: 2, l: 'Best of 3' },
+  { v: 3, l: 'Best of 5' },
+];
+
+// A labelled row of mutually-exclusive choices (radio-style buttons).
+function OptGroup<T extends string | number>({
+  label, options, value, onChange,
+}: {
+  label: string;
+  options: { v: T; l: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="opt-group">
+      <span className="opt-label">{label}</span>
+      <div className="opt-row">
+        {options.map(o => (
+          <button
+            key={String(o.v)}
+            className={`opt-btn${o.v === value ? ' sel' : ''}`}
+            onClick={() => onChange(o.v)}
+          >
+            {o.l}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function CreateRoomPanel({
   gameId,
   displayName,
@@ -23,8 +70,14 @@ export function CreateRoomPanel({
   onClose: () => void;
 }) {
   const createRoom = useReducer(reducers.createRoom);
+  // chess custom clock
   const [min, setMin] = useState('5');
   const [inc, setInc] = useState('3');
+  // fighter ruleset
+  const [time, setTime] = useState(60);
+  const [hp, setHp] = useState(100);
+  const [stam, setStam] = useState('normal');
+  const [rw, setRw] = useState(2);
 
   const create = (settings: string) => {
     void createRoom({ gameId, settings });
@@ -54,6 +107,17 @@ export function CreateRoomPanel({
               <span>s</span>
               <button onClick={() => create(`${Number(min) || 0}+${Number(inc) || 0}`)}>Create</button>
             </div>
+          </>
+        ) : gameId === 'fighter' ? (
+          <>
+            <p className="muted">Match settings</p>
+            <OptGroup label="Round time" options={FIGHTER_TIME} value={time} onChange={setTime} />
+            <OptGroup label="Health" options={FIGHTER_HP} value={hp} onChange={setHp} />
+            <OptGroup label="Stamina" options={FIGHTER_STAM} value={stam} onChange={setStam} />
+            <OptGroup label="Rounds" options={FIGHTER_ROUNDS} value={rw} onChange={setRw} />
+            <button className="create-go" onClick={() => create(`t=${time};hp=${hp};stam=${stam};rw=${rw}`)}>
+              Create room
+            </button>
           </>
         ) : (
           <>

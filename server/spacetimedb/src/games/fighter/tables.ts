@@ -1,8 +1,10 @@
 import { table, t } from 'spacetimedb/server';
 
-// Per-match state (one row per active fighter room). Carries the best-of-3
+// Per-match state (one row per active fighter room). Carries the best-of-N
 // round state machine: phase (intro|fighting|roundEnd|matchEnd), the current
-// round, per-slot round wins, and the deadline for the current phase.
+// round, per-slot round wins, and the deadline for the current phase. The config
+// columns capture the room's chosen ruleset so the tick can rebuild FightConfig
+// each frame and the client can scale its HUD (HP/stamina bars, pips, timer).
 export const fightMatch = table(
   { name: 'fight_match', public: true },
   {
@@ -14,8 +16,16 @@ export const fightMatch = table(
     roundWins1: t.u32(),
     pendingWinner: t.i8(),         // round winner slot decided at fighting->roundEnd (-1 = draw)
     tick: t.u64(),
-    endsAtMicros: t.u64(),         // current round's fight timer deadline
+    endsAtMicros: t.u64(),         // current round's fight timer deadline (0 = no time limit)
     phaseEndsAtMicros: t.u64(),    // intro / roundEnd pause deadline
+    // ---- room config (set at match start; immutable for the match) ----
+    roundSeconds: t.i32(),         // 0 = no time limit
+    maxHp: t.i32(),
+    maxStamina: t.f32(),           // for the client stamina-bar scale
+    staminaOn: t.bool(),           // false = stamina disabled (client hides the bar)
+    staminaName: t.string(),       // preset key; the tick rebuilds the full bundle from it
+    roundsToWin: t.i32(),          // 1 = Bo1, 2 = Bo3, 3 = Bo5 (also # of pips)
+    maxRounds: t.i32(),            // hard cap on total rounds
   }
 );
 

@@ -8,8 +8,22 @@ import {
 } from './sim';
 import { roundOutcome, applyRoundWin } from './rounds';
 import {
-  DT, ARENA_W, ROUND_SECONDS, INTRO_SECONDS, ROUND_END_SECONDS, MAX_ROUNDS,
+  DT, ARENA_W, INTRO_SECONDS, ROUND_END_SECONDS,
+  parseFightConfig, staminaByName, type FightConfig,
 } from './constants';
+
+// Rebuild the per-match FightConfig from a stored fight_match row. The full
+// stamina bundle is re-resolved from the preset name (kept tiny on the row).
+function configFromMatch(fm: any): FightConfig {
+  return {
+    roundSeconds: fm.roundSeconds,
+    maxHp: fm.maxHp,
+    roundsToWin: fm.roundsToWin,
+    maxRounds: fm.maxRounds,
+    staminaName: fm.staminaName,
+    stamina: staminaByName(fm.staminaName),
+  };
+}
 
 const TICK_MICROS = 33_333n; // ~30 Hz
 const SECOND = 1_000_000n;
@@ -56,8 +70,10 @@ export function startFightMatch(ctx: any, roomId: bigint): void {
     (a: any, b: any) => a.slot - b.slot
   );
   if (members.length < 2) return;
+  const room = ctx.db.gameRoom.id.find(roomId);
+  const cfg = parseFightConfig(room?.settings ?? '');
   for (const m of members) {
-    const s = initialFighter(m.slot);
+    const s = initialFighter(m.slot, cfg);
     ctx.db.fighter.insert(withState({ id: 0n, roomId, identity: m.identity, slot: m.slot }, s));
     ctx.db.fightInput.insert({
       identity: m.identity, roomId,
@@ -69,6 +85,9 @@ export function startFightMatch(ctx: any, roomId: bigint): void {
     roomId, status: 'live', phase: 'intro', round: 1,
     roundWins0: 0, roundWins1: 0, pendingWinner: -1,
     tick: 0n, endsAtMicros: 0n, phaseEndsAtMicros: now + BigInt(INTRO_SECONDS) * SECOND,
+    roundSeconds: cfg.roundSeconds, maxHp: cfg.maxHp,
+    maxStamina: cfg.stamina.max, staminaOn: cfg.stamina.enabled, staminaName: cfg.staminaName,
+    roundsToWin: cfg.roundsToWin, maxRounds: cfg.maxRounds,
   });
   ctx.db.fightTick.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.interval(TICK_MICROS), roomId });
   emit(ctx, roomId, 'roundStart', -1, ARENA_W / 2, 0, 1);
@@ -105,6 +124,7 @@ export const fighterTick = spacetimedb.reducer({ timer: fightTick.rowType }, (ct
   const roomId = timer.roomId;
   const fm = ctx.db.fightMatch.roomId.find(roomId);
   if (!fm || fm.status === 'done') return;
+  const cfg = configFromMatch(fm);
   const now = ctx.timestamp.microsSinceUnixEpoch;
   const bump = (extra: Record<string, unknown>) =>
     ctx.db.fightMatch.roomId.update({ ...fm, tick: fm.tick + 1n, ...extra });
@@ -120,7 +140,9 @@ export const fighterTick = spacetimedb.reducer({ timer: fightTick.rowType }, (ct
   // --- intro: freeze, then start the round clock ---
   if (fm.phase === 'intro') {
     if (now >= fm.phaseEndsAtMicros) {
-      bump({ phase: 'fighting', endsAtMicros: now + BigInt(ROUND_SECONDS) * SECOND });
+      // roundSeconds 0 = no time limit → endsAtMicros 0 (the fight never times out)
+      const endsAt = cfg.roundSeconds > 0 ? now + BigInt(cfg.roundSeconds) * SECOND : 0n;
+      bump({ phase: 'fighting', endsAtMicros: endsAt });
     } else {
       bump({});
     }
@@ -144,14 +166,14 @@ export const fighterTick = spacetimedb.reducer({ timer: fightTick.rowType }, (ct
       tick: Number(fm.tick),
       fighters: [toState(rows[0]), toState(rows[1])],
     };
-    const next = step(match, [inputOf(rows[0].identity), inputOf(rows[1].identity)], DT);
+    const next = step(match, [inputOf(rows[0].identity), inputOf(rows[1].identity)], DT, cfg);
 
     next.fighters.forEach((s, i) => ctx.db.fighter.id.update(withState(rows[i], s)));
     for (const ev of next.events) emit(ctx, roomId, ev.kind, ev.victimSlot, ev.x, ev.y, ev.amount);
 
     const hp0 = next.fighters[0].hp;
     const hp1 = next.fighters[1].hp;
-    const timedOut = now >= fm.endsAtMicros;
+    const timedOut = cfg.roundSeconds > 0 && now >= fm.endsAtMicros;
     const oc = roundOutcome(hp0, hp1, timedOut);
 
     if (oc.over) {
@@ -167,11 +189,11 @@ export const fighterTick = spacetimedb.reducer({ timer: fightTick.rowType }, (ct
   if (fm.phase === 'roundEnd') {
     if (now < fm.phaseEndsAtMicros) { bump({}); return; }
 
-    const res = applyRoundWin(fm.pendingWinner, fm.roundWins0, fm.roundWins1);
+    const res = applyRoundWin(fm.pendingWinner, fm.roundWins0, fm.roundWins1, cfg.roundsToWin);
     emit(ctx, roomId, 'roundEnd', -1, ARENA_W / 2, 0, fm.pendingWinner);
 
-    // End on 2 round-wins, or hard-cap total rounds so repeated draws can't loop forever.
-    const reachedCap = fm.round >= MAX_ROUNDS;
+    // End on roundsToWin round-wins, or hard-cap total rounds so repeated draws can't loop forever.
+    const reachedCap = fm.round >= cfg.maxRounds;
     if (res.matchOver || reachedCap) {
       const winner = res.matchOver
         ? res.matchWinnerSlot
@@ -179,7 +201,7 @@ export const fighterTick = spacetimedb.reducer({ timer: fightTick.rowType }, (ct
       endMatch(winner, res.roundWins0, res.roundWins1);
     } else {
       for (const r of [...ctx.db.fighter.roomId.filter(roomId)]) {
-        ctx.db.fighter.id.update(withState(r, initialFighter(r.slot)));
+        ctx.db.fighter.id.update(withState(r, initialFighter(r.slot, cfg)));
       }
       const nextRound = fm.round + 1;
       bump({

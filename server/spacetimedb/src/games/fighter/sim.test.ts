@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { step, initialFighter, type Inputs, type MatchState } from './sim';
 import {
   ARENA_W, FIGHTER_W, MOVE_SPEED, DT, GROUND_Y, MAX_HP, MOVES,
-  JUMP_COST, HEAVY_COST, BLOCK_HIT_COST,
+  JUMP_COST, HEAVY_COST, BLOCK_HIT_COST, parseFightConfig,
 } from './constants';
 
 const NEUTRAL: Inputs = { moveX: 0, jump: false, light: false, heavy: false, block: false, crouch: false };
@@ -348,6 +348,51 @@ describe('stamina', () => {
     for (let i = 0; i < 40; i++) s = step(s, [NEUTRAL, NEUTRAL], DT);
     expect(s.fighters[0].exhausted).toBe(false);
     expect(s.fighters[0].stamina).toBeGreaterThanOrEqual(25);
+  });
+});
+
+describe('config: per-room ruleset', () => {
+  const OFF = parseFightConfig('stam=off;hp=150');
+
+  it('initialFighter honours the configured max HP', () => {
+    expect(initialFighter(0, OFF).hp).toBe(150);
+    expect(initialFighter(0, parseFightConfig('hp=60')).hp).toBe(60);
+  });
+
+  it('stamina OFF: jumping never costs stamina and never exhausts', () => {
+    const a = initialFighter(0, OFF); const b = initialFighter(1, OFF);
+    const full = a.stamina;
+    let s: MatchState = { status: 'fighting', tick: 0, fighters: [a, b] };
+    s = step(s, [{ ...NEUTRAL, jump: true }, NEUTRAL], DT, OFF);
+    expect(s.fighters[0].phase).toBe('jump');
+    expect(s.fighters[0].stamina).toBe(full);   // not spent
+    expect(s.fighters[0].exhausted).toBe(false);
+  });
+
+  it('stamina OFF: heavy fires even at zero stamina (never gated)', () => {
+    const a = initialFighter(0, OFF); const b = initialFighter(1, OFF);
+    a.stamina = 0; // would block a heavy under Normal
+    let s: MatchState = { status: 'fighting', tick: 0, fighters: [a, b] };
+    s = step(s, [{ ...NEUTRAL, heavy: true }, NEUTRAL], DT, OFF);
+    expect(s.fighters[0].attackKind).toBe('heavy');
+  });
+
+  it('stamina OFF: holding block does not drain the bar', () => {
+    const a = initialFighter(0, OFF); const b = initialFighter(1, OFF);
+    const full = a.stamina;
+    let s: MatchState = { status: 'fighting', tick: 0, fighters: [a, b] };
+    for (let i = 0; i < 20; i++) s = step(s, [{ ...NEUTRAL, block: true }, NEUTRAL], DT, OFF);
+    expect(s.fighters[0].phase).toBe('block');
+    expect(s.fighters[0].stamina).toBe(full);
+  });
+
+  it('hardcore preset makes a jump cost more than normal', () => {
+    const hc = parseFightConfig('stam=hardcore');
+    const a = initialFighter(0, hc); const b = initialFighter(1, hc);
+    const full = a.stamina;
+    let s: MatchState = { status: 'fighting', tick: 0, fighters: [a, b] };
+    s = step(s, [{ ...NEUTRAL, jump: true }, NEUTRAL], DT, hc);
+    expect(full - s.fighters[0].stamina).toBeGreaterThan(JUMP_COST); // 32 > 25
   });
 });
 

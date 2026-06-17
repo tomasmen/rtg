@@ -21,4 +21,11 @@ export default __t.row({
   tick: __t.u64(),
   endsAtMicros: __t.u64().name("ends_at_micros"),
   phaseEndsAtMicros: __t.u64().name("phase_ends_at_micros"),
+  roundSeconds: __t.i32().name("round_seconds"),
+  maxHp: __t.i32().name("max_hp"),
+  maxStamina: __t.f32().name("max_stamina"),
+  staminaOn: __t.bool().name("stamina_on"),
+  staminaName: __t.string().name("stamina_name"),
+  roundsToWin: __t.i32().name("rounds_to_win"),
+  maxRounds: __t.i32().name("max_rounds"),
 });

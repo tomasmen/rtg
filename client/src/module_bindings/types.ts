@@ -61,6 +61,13 @@ export const FightMatch = __t.object("FightMatch", {
   tick: __t.u64(),
   endsAtMicros: __t.u64(),
   phaseEndsAtMicros: __t.u64(),
+  roundSeconds: __t.i32(),
+  maxHp: __t.i32(),
+  maxStamina: __t.f32(),
+  staminaOn: __t.bool(),
+  staminaName: __t.string(),
+  roundsToWin: __t.i32(),
+  maxRounds: __t.i32(),
 });
 export type FightMatch = __Infer<typeof FightMatch>;
 

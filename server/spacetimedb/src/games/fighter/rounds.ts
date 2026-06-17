@@ -1,6 +1,8 @@
 import { ROUNDS_TO_WIN } from './constants';
 
-// Pure best-of-3 round logic. No IO, no time, no randomness.
+// Pure best-of-N round logic. No IO, no time, no randomness. `roundsToWin`
+// defaults to the legacy best-of-3 (first to 2) so existing callers/tests are
+// unchanged; match.ts passes the room's configured value (Bo1/Bo3/Bo5).
 
 export function roundOutcome(hp0: number, hp1: number, timedOut: boolean):
   { over: boolean; winnerSlot: number } {
@@ -10,11 +12,11 @@ export function roundOutcome(hp0: number, hp1: number, timedOut: boolean):
   return { over: false, winnerSlot: -1 };
 }
 
-export function applyRoundWin(winnerSlot: number, wins0: number, wins1: number):
+export function applyRoundWin(winnerSlot: number, wins0: number, wins1: number, roundsToWin: number = ROUNDS_TO_WIN):
   { roundWins0: number; roundWins1: number; matchOver: boolean; matchWinnerSlot: number } {
   const r0 = wins0 + (winnerSlot === 0 ? 1 : 0);
   const r1 = wins1 + (winnerSlot === 1 ? 1 : 0);
-  const matchOver = r0 >= ROUNDS_TO_WIN || r1 >= ROUNDS_TO_WIN;
-  const matchWinnerSlot = !matchOver ? -1 : r0 >= ROUNDS_TO_WIN ? 0 : 1;
+  const matchOver = r0 >= roundsToWin || r1 >= roundsToWin;
+  const matchWinnerSlot = !matchOver ? -1 : r0 >= roundsToWin ? 0 : 1;
   return { roundWins0: r0, roundWins1: r1, matchOver, matchWinnerSlot };
 }

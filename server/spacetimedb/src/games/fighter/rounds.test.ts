@@ -19,9 +19,18 @@ describe('roundOutcome', () => {
 });
 
 describe('applyRoundWin', () => {
-  it('applyRoundWin tracks wins and ends match at 2', () => {
+  it('applyRoundWin tracks wins and ends match at 2 (default best-of-3)', () => {
     expect(applyRoundWin(0, 0, 0)).toEqual({ roundWins0: 1, roundWins1: 0, matchOver: false, matchWinnerSlot: -1 });
     expect(applyRoundWin(1, 1, 1)).toEqual({ roundWins0: 1, roundWins1: 2, matchOver: true, matchWinnerSlot: 1 });
     expect(applyRoundWin(-1, 1, 1)).toEqual({ roundWins0: 1, roundWins1: 1, matchOver: false, matchWinnerSlot: -1 }); // draw: no change
+  });
+
+  it('best-of-1 (roundsToWin=1): a single round win ends the match', () => {
+    expect(applyRoundWin(0, 0, 0, 1)).toEqual({ roundWins0: 1, roundWins1: 0, matchOver: true, matchWinnerSlot: 0 });
+  });
+
+  it('best-of-5 (roundsToWin=3): needs three round wins', () => {
+    expect(applyRoundWin(1, 0, 2, 3)).toEqual({ roundWins0: 0, roundWins1: 3, matchOver: true, matchWinnerSlot: 1 });
+    expect(applyRoundWin(1, 0, 1, 3)).toEqual({ roundWins0: 0, roundWins1: 2, matchOver: false, matchWinnerSlot: -1 });
   });
 });

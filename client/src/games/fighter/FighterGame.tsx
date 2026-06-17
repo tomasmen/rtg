@@ -137,9 +137,11 @@ export function FighterGame({ roomId }: { roomId: bigint }) {
         const dm: DrawMatch | undefined = mt
           ? {
               phase: mt.phase, round: mt.round, roundWins0: mt.roundWins0, roundWins1: mt.roundWins1, status: mt.status,
-              secondsLeft: mt.phase === 'fighting'
+              // no time limit (roundSeconds 0) → hide the countdown
+              secondsLeft: mt.phase === 'fighting' && mt.roundSeconds > 0
                 ? Math.max(0, Math.ceil((Number(mt.endsAtMicros) / 1000 - Date.now()) / 1000))
                 : -1,
+              maxHp: mt.maxHp, maxStamina: mt.maxStamina, staminaOn: mt.staminaOn, roundsToWin: mt.roundsToWin,
             }
           : undefined;
         draw(g, { fighters: draws, effects: effectsRef.current, match: dm, mySlot });
@@ -158,7 +160,7 @@ export function FighterGame({ roomId }: { roomId: bigint }) {
     if (!me) return 'Match over';
     const myWins = me.slot === 0 ? match.roundWins0 : match.roundWins1;
     const oppWins = me.slot === 0 ? match.roundWins1 : match.roundWins0;
-    return myWins > oppWins ? 'You win the match! 🏆' : 'You lose the match';
+    return myWins > oppWins ? 'You win the match! 🏆' : myWins < oppWins ? 'You lose the match' : 'Draw';
   })();
 
   return (

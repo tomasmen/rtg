@@ -44,6 +44,11 @@ export interface DrawMatch {
   roundWins1: number;
   status: string;           // 'live' | 'done'
   secondsLeft: number;      // round time remaining (s) while fighting; <0 = hide
+  // per-room config (drives bar scaling, pip count, and the stamina bar's presence)
+  maxHp: number;
+  maxStamina: number;
+  staminaOn: boolean;       // false → hide the stamina bar (stamina system disabled)
+  roundsToWin: number;
 }
 
 export interface DrawScene {
@@ -85,13 +90,19 @@ export function draw(g: CanvasRenderingContext2D, scene: DrawScene): void {
   g.restore();
 
   // ---- screen space HUD ----
+  // Bar scaling / pip count / stamina visibility come from the room config
+  // (fall back to the legacy constants if the match row hasn't synced yet).
+  const maxHp = match?.maxHp ?? MAX_HP;
+  const maxStamina = match?.maxStamina ?? MAX_STAMINA;
+  const staminaOn = match?.staminaOn ?? true;
+  const roundsToWin = match?.roundsToWin ?? ROUNDS_TO_WIN;
   const slot0 = fighters.find((f) => f.slot === 0);
   const slot1 = fighters.find((f) => f.slot === 1);
-  drawHp(g, 16, slot0?.hp ?? 0, slot0?.stamina ?? 0, slot0?.name ?? 'P1', false, mySlot === 0, COLORS[0]);
-  drawHp(g, CANVAS_W - 16 - HP_W, slot1?.hp ?? 0, slot1?.stamina ?? 0, slot1?.name ?? 'P2', true, mySlot === 1, COLORS[1]);
+  drawHp(g, 16, slot0?.hp ?? 0, slot0?.stamina ?? 0, slot0?.name ?? 'P1', false, mySlot === 0, COLORS[0], maxHp, maxStamina, staminaOn);
+  drawHp(g, CANVAS_W - 16 - HP_W, slot1?.hp ?? 0, slot1?.stamina ?? 0, slot1?.name ?? 'P2', true, mySlot === 1, COLORS[1], maxHp, maxStamina, staminaOn);
 
-  drawPips(g, 16, match?.roundWins0 ?? 0, false);
-  drawPips(g, CANVAS_W - 16, match?.roundWins1 ?? 0, true);
+  drawPips(g, 16, match?.roundWins0 ?? 0, false, roundsToWin);
+  drawPips(g, CANVAS_W - 16, match?.roundWins1 ?? 0, true, roundsToWin);
 
   if (match && match.secondsLeft >= 0) drawTimer(g, match.secondsLeft);
   if (match) drawBanner(g, match);
@@ -208,24 +219,29 @@ function drawHp(
   right: boolean,
   isMine: boolean,
   color: string,
+  maxHp: number,
+  maxStamina: number,
+  staminaOn: boolean,
 ): void {
   const w = HP_W;
   const h = 16;
-  const pct = Math.max(0, Math.min(1, hp / MAX_HP));
+  const pct = Math.max(0, Math.min(1, hp / maxHp));
   g.fillStyle = '#2e303a';
   g.fillRect(x, 16, w, h);
   g.fillStyle = pct > 0.3 ? '#34d399' : '#f87171';
   if (right) g.fillRect(x + w * (1 - pct), 16, w * pct, h);
   else g.fillRect(x, 16, w * pct, h);
 
-  // stamina: a thin blue bar just under the HP bar
-  const sp = Math.max(0, Math.min(1, stamina / MAX_STAMINA));
-  g.fillStyle = '#23262f';
-  g.fillRect(x, 36, w, 5);
-  g.fillStyle = sp > 0.3 ? '#60a5fa' : '#ef4444'; // red when too low to act
-  const sw = w * sp;
-  if (right) g.fillRect(x + w - sw, 36, sw, 5);
-  else g.fillRect(x, 36, sw, 5);
+  // stamina: a thin blue bar just under the HP bar (hidden when stamina is disabled)
+  if (staminaOn) {
+    const sp = Math.max(0, Math.min(1, stamina / maxStamina));
+    g.fillStyle = '#23262f';
+    g.fillRect(x, 36, w, 5);
+    g.fillStyle = sp > 0.3 ? '#60a5fa' : '#ef4444'; // red when too low to act
+    const sw = w * sp;
+    if (right) g.fillRect(x + w - sw, 36, sw, 5);
+    else g.fillRect(x, 36, sw, 5);
+  }
 
   // your own bar gets a coloured outline + a "YOU" tag so it's unmistakable
   if (isMine) {
@@ -244,10 +260,10 @@ function drawHp(
 }
 
 // Round-win pips under each HP bar: filled = won, hollow = remaining.
-function drawPips(g: CanvasRenderingContext2D, edgeX: number, wins: number, right: boolean): void {
+function drawPips(g: CanvasRenderingContext2D, edgeX: number, wins: number, right: boolean, roundsToWin: number): void {
   const y = 66;
   const gap = PIP_R * 2 + 8;
-  for (let i = 0; i < ROUNDS_TO_WIN; i++) {
+  for (let i = 0; i < roundsToWin; i++) {
     const cx = right ? edgeX - PIP_R - i * gap : edgeX + PIP_R + i * gap;
     g.beginPath();
     g.arc(cx, y, PIP_R, 0, Math.PI * 2);
@@ -272,7 +288,9 @@ function drawBanner(g: CanvasRenderingContext2D, match: DrawMatch): void {
       text = 'K.O.!';
       break;
     case 'matchEnd':
-      text = match.roundWins0 > match.roundWins1 ? 'Player 1 wins!' : 'Player 2 wins!';
+      text = match.roundWins0 === match.roundWins1
+        ? 'Draw!'
+        : match.roundWins0 > match.roundWins1 ? 'Player 1 wins!' : 'Player 2 wins!';
       break;
     default:
       return; // 'fighting' shows no banner
