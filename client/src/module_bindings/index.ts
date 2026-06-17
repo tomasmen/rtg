@@ -34,17 +34,37 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
+import CreateRoomReducer from "./create_room_reducer";
+import JoinRoomReducer from "./join_room_reducer";
+import LeaveRoomReducer from "./leave_room_reducer";
+import QuickMatchReducer from "./quick_match_reducer";
 import SetNameReducer from "./set_name_reducer";
 
 // Import all procedure arg schemas
 
 // Import all table schema definitions
+import GameRoomRow from "./game_room_table";
 import PlayerRow from "./player_table";
+import RoomMemberRow from "./room_member_table";
 
 /** Type-only namespace exports for generated type groups. */
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
+  gameRoom: __table({
+    name: 'game_room',
+    indexes: [
+      { accessor: 'gameId', name: 'game_room_game_id_idx_btree', algorithm: 'btree', columns: [
+        'gameId',
+      ] },
+      { accessor: 'id', name: 'game_room_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+    ],
+    constraints: [
+      { name: 'game_room_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, GameRoomRow),
   player: __table({
     name: 'player',
     indexes: [
@@ -56,10 +76,31 @@ const tablesSchema = __schema({
       { name: 'player_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, PlayerRow),
+  roomMember: __table({
+    name: 'room_member',
+    indexes: [
+      { accessor: 'id', name: 'room_member_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'identity', name: 'room_member_identity_idx_btree', algorithm: 'btree', columns: [
+        'identity',
+      ] },
+      { accessor: 'roomId', name: 'room_member_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'room_member_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, RoomMemberRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("create_room", CreateRoomReducer),
+  __reducerSchema("join_room", JoinRoomReducer),
+  __reducerSchema("leave_room", LeaveRoomReducer),
+  __reducerSchema("quick_match", QuickMatchReducer),
   __reducerSchema("set_name", SetNameReducer),
 );
 

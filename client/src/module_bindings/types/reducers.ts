@@ -6,7 +6,15 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
+import CreateRoomReducer from "../create_room_reducer";
+import JoinRoomReducer from "../join_room_reducer";
+import LeaveRoomReducer from "../leave_room_reducer";
+import QuickMatchReducer from "../quick_match_reducer";
 import SetNameReducer from "../set_name_reducer";
 
+export type CreateRoomParams = __Infer<typeof CreateRoomReducer>;
+export type JoinRoomParams = __Infer<typeof JoinRoomReducer>;
+export type LeaveRoomParams = __Infer<typeof LeaveRoomReducer>;
+export type QuickMatchParams = __Infer<typeof QuickMatchReducer>;
 export type SetNameParams = __Infer<typeof SetNameReducer>;
 

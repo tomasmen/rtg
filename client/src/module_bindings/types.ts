@@ -10,6 +10,15 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
+export const GameRoom = __t.object("GameRoom", {
+  id: __t.u64(),
+  gameId: __t.string(),
+  status: __t.string(),
+  createdBy: __t.identity(),
+  createdAt: __t.timestamp(),
+});
+export type GameRoom = __Infer<typeof GameRoom>;
+
 export const Player = __t.object("Player", {
   identity: __t.identity(),
   displayName: __t.string(),
@@ -18,4 +27,12 @@ export const Player = __t.object("Player", {
   location: __t.string(),
 });
 export type Player = __Infer<typeof Player>;
+
+export const RoomMember = __t.object("RoomMember", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  identity: __t.identity(),
+  slot: __t.u8(),
+});
+export type RoomMember = __Infer<typeof RoomMember>;
 
