@@ -40,7 +40,8 @@ export const DASH_TAP_WINDOW = 9;  // frames between taps to trigger a dash
 export const DASH_SPEED = 620;
 export const DASH_FRAMES = 8;
 
-export const ROUND_SECONDS = 60;
+export const ROUND_SECONDS = 40;       // shorter so passive rounds don't drag
 export const ROUNDS_TO_WIN = 2;
+export const MAX_ROUNDS = 5;            // hard cap so repeated draws can't loop forever
 export const INTRO_SECONDS = 2;
 export const ROUND_END_SECONDS = 2;

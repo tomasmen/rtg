@@ -13,6 +13,7 @@ import {
 export const FightEvent = __t.object("FightEvent", {
   roomId: __t.u64(),
   kind: __t.string(),
+  victimSlot: __t.i8(),
   x: __t.f32(),
   y: __t.f32(),
   amount: __t.f32(),
@@ -68,6 +69,7 @@ export const Fighter = __t.object("Fighter", {
   phaseFrame: __t.u32(),
   attackKind: __t.string(),
   attackHasHit: __t.bool(),
+  airAttackUsed: __t.bool(),
   stunFrames: __t.u32(),
   prevJump: __t.bool(),
   prevLight: __t.bool(),

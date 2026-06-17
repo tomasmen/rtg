@@ -236,3 +236,45 @@ describe('A2.9 step returns hit events', () => {
     expect(ev!.amount).toBe(MOVES.heavy.chip);
   });
 });
+
+describe('review fixes', () => {
+  it('a simultaneous light trade damages BOTH fighters (no slot-0 priority)', () => {
+    const a = initialFighter(0); const b = initialFighter(1);
+    a.x = 380; b.x = 430; // within light range of each other
+    let s = m(a, b);
+    const hp0 = a.hp; const hp1 = b.hp;
+    for (let i = 0; i < MOVES.light.total; i++) {
+      s = step(s, [{ ...NEUTRAL, light: true }, { ...NEUTRAL, light: true }], DT);
+    }
+    expect(s.fighters[0].hp).toBe(hp0 - MOVES.light.dmg);
+    expect(s.fighters[1].hp).toBe(hp1 - MOVES.light.dmg);
+  });
+
+  it('only one air attack per jump', () => {
+    const a = initialFighter(0); a.y = 600; a.vy = 0; // high in the air
+    const b = initialFighter(1);
+    let s = m(a, b);
+    s = step(s, [{ ...NEUTRAL, light: true }, NEUTRAL], DT); // first air attack
+    expect(s.fighters[0].attackKind).toBe('air');
+    // run it to completion while still airborne
+    for (let i = 0; i < MOVES.air.total + 1; i++) s = step(s, [NEUTRAL, NEUTRAL], DT);
+    expect(s.fighters[0].y).toBeGreaterThan(GROUND_Y);
+    expect(s.fighters[0].phase).not.toBe('attack');
+    // a second light press in the same jump must NOT start another air attack
+    s = step(s, [{ ...NEUTRAL, light: true }, NEUTRAL], DT);
+    expect(s.fighters[0].attackKind).toBe('none');
+    expect(s.fighters[0].phase).not.toBe('attack');
+  });
+
+  it('back-dash retreats but keeps facing the opponent', () => {
+    const a = initialFighter(0); const b = initialFighter(1);
+    a.x = 300; b.x = 500; // opponent on the right → a faces +1
+    let s = m(a, b);
+    s = step(s, [{ ...NEUTRAL, moveX: -1 }, NEUTRAL], DT); // tap 1 (away)
+    s = step(s, [NEUTRAL, NEUTRAL], DT);                   // release
+    s = step(s, [{ ...NEUTRAL, moveX: -1 }, NEUTRAL], DT); // tap 2 → back-dash
+    expect(s.fighters[0].phase).toBe('dash');
+    expect(s.fighters[0].vx).toBeLessThan(0);  // retreating left
+    expect(s.fighters[0].facing).toBe(1);      // still facing the opponent
+  });
+});

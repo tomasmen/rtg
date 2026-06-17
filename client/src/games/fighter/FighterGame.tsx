@@ -7,7 +7,7 @@ import { playSfx } from './audio';
 import { CANVAS_W, CANVAS_H } from './constants';
 
 export function FighterGame({ roomId }: { roomId: bigint }) {
-  const { identity, getConnection } = useSpacetimeDB();
+  const { identity, getConnection, isActive } = useSpacetimeDB();
   const [fighters] = useTable(tables.fighter);
   const [matches] = useTable(tables.fightMatch);
   const [players] = useTable(tables.player);
@@ -31,6 +31,12 @@ export function FighterGame({ roomId }: { roomId: bigint }) {
   // Client-only juice state (shake / hitstop / flash / sparks).
   const effectsRef = useRef<Effects>(newEffects());
 
+  // Detect an opponent leaving mid-match: their leave/disconnect tears down the
+  // match row, so if we once saw a match here and it's now gone, we win by forfeit.
+  const hadMatchRef = useRef(false);
+  if (match) hadMatchRef.current = true;
+  const opponentLeft = hadMatchRef.current && !match;
+
   // ---- keyboard input → setInput (only on change) ----
   useEffect(() => {
     const held = new Set<string>();
@@ -50,13 +56,24 @@ export function FighterGame({ roomId }: { roomId: bigint }) {
         void setInput({ moveX, jump, light, heavy, block, crouch });
       }
     };
-    const down = (e: KeyboardEvent) => { held.add(e.key.toLowerCase()); compute(); };
+    const GAME_KEYS = new Set(['a', 'd', 'w', 's', 'j', 'k', 'l', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' ']);
+    const isTyping = (e: KeyboardEvent) => (e.target as HTMLElement | null)?.tagName === 'INPUT';
+    const down = (e: KeyboardEvent) => {
+      if (isTyping(e)) return;                  // don't hijack the name field
+      const k = e.key.toLowerCase();
+      if (GAME_KEYS.has(k)) e.preventDefault();  // suppress page scroll / space-activates-button
+      held.add(k);
+      compute();
+    };
     const up = (e: KeyboardEvent) => { held.delete(e.key.toLowerCase()); compute(); };
+    const reset = () => { held.clear(); compute(); }; // focus loss / alt-tab → release stuck keys
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
+    window.addEventListener('blur', reset);
     return () => {
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
+      window.removeEventListener('blur', reset);
     };
   }, [setInput]);
 
@@ -70,19 +87,14 @@ export function FighterGame({ roomId }: { roomId: bigint }) {
       if (ev.roomId !== roomId) return;
       playSfx(ev.kind);
       if (ev.kind === 'hit' || ev.kind === 'block') {
-        // victim = fighter nearest the contact point
-        let victimSlot = -1;
-        let best = Infinity;
-        for (const f of dataRef.current.fighters) {
-          const d = Math.abs(f.x - ev.x);
-          if (d < best) { best = d; victimSlot = f.slot; }
-        }
-        pushHit(effectsRef.current, ev.x, ev.y, ev.amount, victimSlot, ev.kind === 'block');
+        // victimSlot is authoritative from the server (no nearest-fighter guessing)
+        pushHit(effectsRef.current, ev.x, ev.y, ev.amount, ev.victimSlot, ev.kind === 'block');
       }
     };
     conn.db.fightEvent.onInsert(onEvent);
     return () => { conn.db.fightEvent.removeOnInsert(onEvent); };
-  }, [getConnection, roomId]);
+    // isActive in deps: re-register on reconnect (the connection object is rebuilt).
+  }, [getConnection, roomId, isActive]);
 
   // ---- render loop ----
   useEffect(() => {
@@ -127,6 +139,7 @@ export function FighterGame({ roomId }: { roomId: bigint }) {
 
   const myHex = identity?.toHexString();
   const result = (() => {
+    if (opponentLeft) return 'Opponent left — you win! 🏆';
     if (!match || match.status !== 'done') return null;
     const me = mine.find(f => f.identity.toHexString() === myHex);
     if (!me) return 'Match over';

@@ -13,6 +13,7 @@ import {
 export default __t.row({
   roomId: __t.u64().name("room_id"),
   kind: __t.string(),
+  victimSlot: __t.i8().name("victim_slot"),
   x: __t.f32(),
   y: __t.f32(),
   amount: __t.f32(),

@@ -13,6 +13,9 @@ describe('roundOutcome', () => {
     expect(roundOutcome(60, 40, true)).toEqual({ over: true, winnerSlot: 0 });
     expect(roundOutcome(40, 40, true)).toEqual({ over: true, winnerSlot: -1 });
   });
+  it('double KO (both hp<=0) is a draw, not a slot-1 win', () => {
+    expect(roundOutcome(0, 0, false)).toEqual({ over: true, winnerSlot: -1 });
+  });
 });
 
 describe('applyRoundWin', () => {

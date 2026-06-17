@@ -25,6 +25,7 @@ export default __t.row({
   phaseFrame: __t.u32().name("phase_frame"),
   attackKind: __t.string().name("attack_kind"),
   attackHasHit: __t.bool().name("attack_has_hit"),
+  airAttackUsed: __t.bool().name("air_attack_used"),
   stunFrames: __t.u32().name("stun_frames"),
   prevJump: __t.bool().name("prev_jump"),
   prevLight: __t.bool().name("prev_light"),

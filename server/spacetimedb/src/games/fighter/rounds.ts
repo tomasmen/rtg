@@ -4,6 +4,7 @@ import { ROUNDS_TO_WIN } from './constants';
 
 export function roundOutcome(hp0: number, hp1: number, timedOut: boolean):
   { over: boolean; winnerSlot: number } {
+  if (hp0 <= 0 && hp1 <= 0) return { over: true, winnerSlot: -1 }; // double KO = draw
   if (hp0 <= 0 || hp1 <= 0) return { over: true, winnerSlot: hp0 <= 0 ? 1 : 0 };
   if (timedOut) return { over: true, winnerSlot: hp0 === hp1 ? -1 : hp0 > hp1 ? 0 : 1 };
   return { over: false, winnerSlot: -1 };

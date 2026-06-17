@@ -40,6 +40,7 @@ export const fighter = table(
     phaseFrame: t.u32(),
     attackKind: t.string(),
     attackHasHit: t.bool(),
+    airAttackUsed: t.bool(),
     stunFrames: t.u32(),
     prevJump: t.bool(),
     prevLight: t.bool(),
@@ -74,6 +75,7 @@ export const fightEvent = table(
   {
     roomId: t.u64(),
     kind: t.string(),   // 'hit' | 'block' | 'ko' | 'roundStart' | 'roundEnd' | 'matchEnd'
+    victimSlot: t.i8(), // for hit/block: who got struck (-1 for non-combat events)
     x: t.f32(),
     y: t.f32(),
     amount: t.f32(),

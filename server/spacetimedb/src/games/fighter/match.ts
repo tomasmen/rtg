@@ -8,18 +8,19 @@ import {
 } from './sim';
 import { roundOutcome, applyRoundWin } from './rounds';
 import {
-  DT, ARENA_W, ROUND_SECONDS, INTRO_SECONDS, ROUND_END_SECONDS,
+  DT, ARENA_W, ROUND_SECONDS, INTRO_SECONDS, ROUND_END_SECONDS, MAX_ROUNDS,
 } from './constants';
 
 const TICK_MICROS = 33_333n; // ~30 Hz
 const SECOND = 1_000_000n;
 
-// The 17 sim fields of FighterState, pulled off a fighter table row.
+// The sim fields of FighterState, pulled off a fighter table row.
 function toState(r: any): FighterState {
   return {
     x: r.x, y: r.y, vx: r.vx, vy: r.vy, facing: r.facing, hp: r.hp,
     phase: r.phase, phaseFrame: r.phaseFrame,
-    attackKind: r.attackKind, attackHasHit: r.attackHasHit, stunFrames: r.stunFrames,
+    attackKind: r.attackKind, attackHasHit: r.attackHasHit, airAttackUsed: r.airAttackUsed,
+    stunFrames: r.stunFrames,
     prevJump: r.prevJump, prevLight: r.prevLight, prevHeavy: r.prevHeavy,
     prevMoveX: r.prevMoveX, dashTapDir: r.dashTapDir, dashTapFrames: r.dashTapFrames,
   };
@@ -31,14 +32,15 @@ function withState(row: any, s: FighterState): any {
     ...row,
     x: s.x, y: s.y, vx: s.vx, vy: s.vy, facing: s.facing, hp: s.hp,
     phase: s.phase, phaseFrame: s.phaseFrame,
-    attackKind: s.attackKind, attackHasHit: s.attackHasHit, stunFrames: s.stunFrames,
+    attackKind: s.attackKind, attackHasHit: s.attackHasHit, airAttackUsed: s.airAttackUsed,
+    stunFrames: s.stunFrames,
     prevJump: s.prevJump, prevLight: s.prevLight, prevHeavy: s.prevHeavy,
     prevMoveX: s.prevMoveX, dashTapDir: s.dashTapDir, dashTapFrames: s.dashTapFrames,
   };
 }
 
-function emit(ctx: any, roomId: bigint, kind: string, x: number, y: number, amount: number): void {
-  ctx.db.fightEvent.insert({ roomId, kind, x, y, amount });
+function emit(ctx: any, roomId: bigint, kind: string, victimSlot: number, x: number, y: number, amount: number): void {
+  ctx.db.fightEvent.insert({ roomId, kind, victimSlot, x, y, amount });
 }
 
 function stopTick(ctx: any, roomId: bigint): void {
@@ -69,7 +71,7 @@ export function startFightMatch(ctx: any, roomId: bigint): void {
     tick: 0n, endsAtMicros: 0n, phaseEndsAtMicros: now + BigInt(INTRO_SECONDS) * SECOND,
   });
   ctx.db.fightTick.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.interval(TICK_MICROS), roomId });
-  emit(ctx, roomId, 'roundStart', ARENA_W / 2, 0, 1);
+  emit(ctx, roomId, 'roundStart', -1, ARENA_W / 2, 0, 1);
 }
 
 // Tear down all fight state for a room. Idempotent (existence-checked).
@@ -107,6 +109,14 @@ export const fighterTick = spacetimedb.reducer({ timer: fightTick.rowType }, (ct
   const bump = (extra: Record<string, unknown>) =>
     ctx.db.fightMatch.roomId.update({ ...fm, tick: fm.tick + 1n, ...extra });
 
+  const endMatch = (winnerSlot: number, wins0: number, wins1: number) => {
+    bump({ phase: 'matchEnd', status: 'done', roundWins0: wins0, roundWins1: wins1 });
+    emit(ctx, roomId, 'matchEnd', -1, ARENA_W / 2, 0, winnerSlot);
+    stopTick(ctx, roomId);
+    const room = ctx.db.gameRoom.id.find(roomId);
+    if (room) ctx.db.gameRoom.id.update({ ...room, status: 'finished' });
+  };
+
   // --- intro: freeze, then start the round clock ---
   if (fm.phase === 'intro') {
     if (now >= fm.phaseEndsAtMicros) {
@@ -137,7 +147,7 @@ export const fighterTick = spacetimedb.reducer({ timer: fightTick.rowType }, (ct
     const next = step(match, [inputOf(rows[0].identity), inputOf(rows[1].identity)], DT);
 
     next.fighters.forEach((s, i) => ctx.db.fighter.id.update(withState(rows[i], s)));
-    for (const ev of next.events) emit(ctx, roomId, ev.kind, ev.x, ev.y, ev.amount);
+    for (const ev of next.events) emit(ctx, roomId, ev.kind, ev.victimSlot, ev.x, ev.y, ev.amount);
 
     const hp0 = next.fighters[0].hp;
     const hp1 = next.fighters[1].hp;
@@ -145,7 +155,7 @@ export const fighterTick = spacetimedb.reducer({ timer: fightTick.rowType }, (ct
     const oc = roundOutcome(hp0, hp1, timedOut);
 
     if (oc.over) {
-      if (hp0 <= 0 || hp1 <= 0) emit(ctx, roomId, 'ko', ARENA_W / 2, 0, oc.winnerSlot);
+      if (hp0 <= 0 || hp1 <= 0) emit(ctx, roomId, 'ko', -1, ARENA_W / 2, 0, oc.winnerSlot);
       bump({ phase: 'roundEnd', pendingWinner: oc.winnerSlot, phaseEndsAtMicros: now + BigInt(ROUND_END_SECONDS) * SECOND });
     } else {
       bump({});
@@ -158,14 +168,15 @@ export const fighterTick = spacetimedb.reducer({ timer: fightTick.rowType }, (ct
     if (now < fm.phaseEndsAtMicros) { bump({}); return; }
 
     const res = applyRoundWin(fm.pendingWinner, fm.roundWins0, fm.roundWins1);
-    emit(ctx, roomId, 'roundEnd', ARENA_W / 2, 0, fm.pendingWinner);
+    emit(ctx, roomId, 'roundEnd', -1, ARENA_W / 2, 0, fm.pendingWinner);
 
-    if (res.matchOver) {
-      bump({ phase: 'matchEnd', status: 'done', roundWins0: res.roundWins0, roundWins1: res.roundWins1 });
-      emit(ctx, roomId, 'matchEnd', ARENA_W / 2, 0, res.matchWinnerSlot);
-      stopTick(ctx, roomId);
-      const room = ctx.db.gameRoom.id.find(roomId);
-      if (room) ctx.db.gameRoom.id.update({ ...room, status: 'finished' });
+    // End on 2 round-wins, or hard-cap total rounds so repeated draws can't loop forever.
+    const reachedCap = fm.round >= MAX_ROUNDS;
+    if (res.matchOver || reachedCap) {
+      const winner = res.matchOver
+        ? res.matchWinnerSlot
+        : res.roundWins0 > res.roundWins1 ? 0 : res.roundWins1 > res.roundWins0 ? 1 : -1;
+      endMatch(winner, res.roundWins0, res.roundWins1);
     } else {
       for (const r of [...ctx.db.fighter.roomId.filter(roomId)]) {
         ctx.db.fighter.id.update(withState(r, initialFighter(r.slot)));
@@ -176,7 +187,7 @@ export const fighterTick = spacetimedb.reducer({ timer: fightTick.rowType }, (ct
         roundWins0: res.roundWins0, roundWins1: res.roundWins1, pendingWinner: -1,
         phaseEndsAtMicros: now + BigInt(INTRO_SECONDS) * SECOND,
       });
-      emit(ctx, roomId, 'roundStart', ARENA_W / 2, 0, nextRound);
+      emit(ctx, roomId, 'roundStart', -1, ARENA_W / 2, 0, nextRound);
     }
     return;
   }

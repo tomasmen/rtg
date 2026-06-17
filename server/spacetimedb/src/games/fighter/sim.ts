@@ -14,6 +14,7 @@ export interface FighterState {
   phase: FighterPhase; phaseFrame: number;
   attackKind: AttackKind;
   attackHasHit: boolean;      // prevents an active window from multi-hitting
+  airAttackUsed: boolean;     // one air attack per jump
   stunFrames: number;         // length of the current hitstun/blockstun (frames)
   // input-edge & dash memory (sim-internal; persisted on the fighter row):
   prevJump: boolean; prevLight: boolean; prevHeavy: boolean;
@@ -51,6 +52,7 @@ export function initialFighter(slot: number): FighterState {
     phaseFrame: 0,
     attackKind: 'none',
     attackHasHit: false,
+    airAttackUsed: false,
     stunFrames: 0,
     prevJump: false,
     prevLight: false,
@@ -130,9 +132,11 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number): FighterState 
         startAttack(f, input.crouch ? 'low' : 'light');
         f.vx = 0;
       } else if (dashTriggered !== 0) {
+        // committed burst in the tap direction; facing stays toward the opponent
+        // (set by the match-level auto-face) so a back-dash retreats without
+        // spinning around. faceCommitted keeps it from turning mid-dash.
         f.phase = 'dash';
         f.phaseFrame = 0;
-        f.facing = dashTriggered;
         f.vx = dashTriggered * DASH_SPEED;
       } else if (input.block) {
         f.phase = 'block';
@@ -145,14 +149,16 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number): FighterState 
         if (jumpEdge) {
           f.vy = JUMP_V;
           f.phase = 'jump';
+          f.airAttackUsed = false; // fresh jump → air attack available again
         } else {
           f.phase = input.moveX !== 0 ? 'walk' : 'idle';
         }
       }
     } else {
-      // airborne: one air attack per jump, else air drift
-      if (lightEdge || heavyEdge) {
+      // airborne: at most one air attack per jump, else air drift
+      if ((lightEdge || heavyEdge) && !f.airAttackUsed) {
         startAttack(f, 'air');
+        f.airAttackUsed = true;
       } else {
         f.vx = input.moveX * MOVE_SPEED * AIR_CONTROL;
       }
@@ -181,6 +187,7 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number): FighterState 
   if (f.y <= GROUND_Y) {
     f.y = GROUND_Y;
     f.vy = 0;
+    f.airAttackUsed = false; // grounded → reset for the next jump
     // landed: a jump or an air attack resolves to idle on touchdown
     if (f.phase === 'jump') f.phase = 'idle';
     if (f.phase === 'attack' && f.attackKind === 'air') {
@@ -209,58 +216,63 @@ function hurtTop(victim: FighterState): number {
   return victim.phase === 'crouch' ? CROUCH_H : FIGHTER_H;
 }
 
-// Apply attacker's active-frame hit to victim (mutates victim, pushes a SimEvent). Pure-ish.
+// Apply an attacker's active-frame hit to a victim. `atk`/`vic` are PRE-resolution
+// snapshots (so a simultaneous mutual trade resolves both blows fairly, regardless
+// of order); mutations land on the live objects `atkLive`/`vicLive`, and a SimEvent
+// is pushed. Pure-ish.
 function resolveHit(
-  attacker: FighterState,
-  victim: FighterState,
+  atkLive: FighterState,
+  atk: FighterState,
+  vicLive: FighterState,
+  vic: FighterState,
   victimSlot: number,
   events: SimEvent[],
 ): void {
-  if (attacker.phase !== 'attack' || attacker.attackKind === 'none') return;
-  if (attacker.attackHasHit) return;
-  if (victim.phase === 'ko') return;
+  if (atk.phase !== 'attack' || atk.attackKind === 'none') return;
+  if (atk.attackHasHit) return;
+  if (vic.phase === 'ko') return;
 
-  const move = MOVES[attacker.attackKind];
-  if (!(attacker.phaseFrame >= move.startup && attacker.phaseFrame < move.activeTo)) return;
+  const move = MOVES[atk.attackKind];
+  if (!(atk.phaseFrame >= move.startup && atk.phaseFrame < move.activeTo)) return;
 
   // crouch ducks highs
-  if (!move.hitsCrouch && victim.phase === 'crouch') return;
+  if (!move.hitsCrouch && vic.phase === 'crouch') return;
 
   // horizontal reach test from the attacker's front edge
-  const front = attacker.x + attacker.facing * (FIGHTER_W / 2);
-  const reach = front + attacker.facing * move.range;
+  const front = atk.x + atk.facing * (FIGHTER_W / 2);
+  const reach = front + atk.facing * move.range;
   const lo = Math.min(front, reach);
   const hi = Math.max(front, reach);
-  const vLo = victim.x - FIGHTER_W / 2;
-  const vHi = victim.x + FIGHTER_W / 2;
+  const vLo = vic.x - FIGHTER_W / 2;
+  const vHi = vic.x + FIGHTER_W / 2;
   if (!(hi >= vLo && lo <= vHi)) return;
 
   // vertical overlap: attacker's strike must be within the victim's hurtbox span
-  const top = hurtTop(victim);
-  if (!(attacker.y <= victim.y + top && attacker.y + FIGHTER_H >= victim.y)) return;
+  const top = hurtTop(vic);
+  if (!(atk.y <= vic.y + top && atk.y + FIGHTER_H >= vic.y)) return;
 
-  attacker.attackHasHit = true;
+  atkLive.attackHasHit = true;
 
-  const dir = attacker.facing; // push victim away from attacker
-  const contactX = victim.x - attacker.facing * (FIGHTER_W / 2); // victim's near edge
-  const contactY = victim.y + top / 2; // mid-torso height
+  const dir = atk.facing; // push victim away from attacker
+  const contactX = vic.x - atk.facing * (FIGHTER_W / 2); // victim's near edge
+  const contactY = vic.y + top / 2; // mid-torso height
 
-  const blocking = victim.y <= GROUND_Y && (victim.phase === 'block' || victim.phase === 'blockstun');
+  const blocking = vic.y <= GROUND_Y && (vic.phase === 'block' || vic.phase === 'blockstun');
   if (blocking) {
-    victim.hp -= move.chip;
-    victim.phase = 'blockstun';
-    victim.phaseFrame = 0;
-    victim.stunFrames = move.blockstun;
-    victim.vx = dir * (move.kb * 0.25); // small pushback
+    vicLive.hp -= move.chip;
+    vicLive.phase = 'blockstun';
+    vicLive.phaseFrame = 0;
+    vicLive.stunFrames = move.blockstun;
+    vicLive.vx = dir * (move.kb * 0.25); // small pushback
     events.push({ kind: 'block', victimSlot, x: contactX, y: contactY, amount: move.chip });
   } else {
-    victim.hp -= move.dmg;
-    victim.phase = 'hitstun';
-    victim.phaseFrame = 0;
-    victim.stunFrames = move.hitstun;
-    victim.vx = dir * move.kb;
-    victim.attackKind = 'none';
-    victim.attackHasHit = false;
+    vicLive.hp -= move.dmg;
+    vicLive.phase = 'hitstun';
+    vicLive.phaseFrame = 0;
+    vicLive.stunFrames = move.hitstun;
+    vicLive.vx = dir * move.kb;
+    vicLive.attackKind = 'none';
+    vicLive.attackHasHit = false;
     events.push({ kind: 'hit', victimSlot, x: contactX, y: contactY, amount: move.dmg });
   }
 }
@@ -287,9 +299,13 @@ export function step(
   if (!faceCommitted(a)) a.facing = a.x <= b.x ? 1 : -1;
   if (!faceCommitted(b)) b.facing = b.x <= a.x ? 1 : -1;
 
+  // Resolve both hits against PRE-resolution snapshots so a simultaneous mutual
+  // trade lands both blows instead of letting slot 0 cancel slot 1's strike.
   const events: SimEvent[] = [];
-  resolveHit(fighters[0], fighters[1], 1, events);
-  resolveHit(fighters[1], fighters[0], 0, events);
+  const snap0 = { ...a };
+  const snap1 = { ...b };
+  resolveHit(a, snap0, b, snap1, 1, events);
+  resolveHit(b, snap1, a, snap0, 0, events);
 
   let status: MatchState['status'] = 'fighting';
   for (const f of fighters) {

@@ -1,4 +1,4 @@
-import { SHAKE_DECAY, SHAKE_PER_DMG, FLASH_FRAMES, HITSTOP_FRAMES, SPARK_COUNT, SPARK_LIFE } from './constants';
+import { SHAKE_DECAY, SHAKE_PER_DMG, SHAKE_MAX, FLASH_FRAMES, HITSTOP_FRAMES, BLOCK_HITSTOP_FRAMES, SPARK_COUNT, SPARK_LIFE } from './constants';
 
 export interface Spark {
   x: number;
@@ -26,9 +26,13 @@ export function pushHit(
   victimSlot: number,
   blocked: boolean,
 ): void {
-  e.shake = Math.min(14, e.shake + amount * SHAKE_PER_DMG);
-  e.hitstop = HITSTOP_FRAMES;
-  if (!blocked && victimSlot >= 0) e.flash[victimSlot] = FLASH_FRAMES;
+  e.shake = Math.min(SHAKE_MAX, e.shake + amount * SHAKE_PER_DMG);
+  e.hitstop = Math.max(e.hitstop, blocked ? BLOCK_HITSTOP_FRAMES : HITSTOP_FRAMES);
+  if (blocked) {
+    e.shake = Math.max(e.shake, 2.5); // a 0-chip block still gets a small cue
+  } else if (victimSlot === 0 || victimSlot === 1) {
+    e.flash[victimSlot] = FLASH_FRAMES;
+  }
   const n = blocked ? Math.floor(SPARK_COUNT / 2) : SPARK_COUNT;
   for (let i = 0; i < n; i++) {
     const a = (Math.PI * 2 * i) / n + Math.random() * 0.4;
