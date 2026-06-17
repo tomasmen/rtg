@@ -1,8 +1,10 @@
-import { schema, t } from 'spacetimedb/server';
-import { player } from './core/tables';
+import { t } from 'spacetimedb/server';
+import spacetimedb from './schema';
 
-const spacetimedb = schema({ player });
-export default spacetimedb;
+// index.ts is the module entry. The schema default is re-exported from schema.ts;
+// reducers/lifecycle are declared here (and, for larger features, re-exported
+// from sibling files that also import the schema from ./schema).
+export { default } from './schema';
 
 // Mark a player online when they connect, creating their row on first connect.
 export const onConnect = spacetimedb.clientConnected(ctx => {
