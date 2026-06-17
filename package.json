@@ -1,0 +1,17 @@
+{
+  "name": "rtg",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Office Arcade — real-time multiplayer games on SpacetimeDB",
+  "scripts": {
+    "install:all": "npm --prefix server/spacetimedb install && npm --prefix client install",
+    "dev:server": "spacetime dev --project-path server --module-bindings-path ../client/src/module_bindings --client-lang typescript",
+    "build:server": "spacetime build --module-path server/spacetimedb",
+    "typecheck:server": "npm --prefix server/spacetimedb run typecheck",
+    "typecheck:client": "npm --prefix client run typecheck",
+    "typecheck": "npm run typecheck:server && npm run typecheck:client",
+    "test": "npm --prefix server/spacetimedb run test --if-present && npm --prefix client run test --if-present",
+    "build:client": "npm --prefix client run build",
+    "dev:client": "npm --prefix client run dev"
+  }
+}
