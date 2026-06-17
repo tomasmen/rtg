@@ -11,6 +11,25 @@ game, and play. First game: a networked 1v1 2D fighter. Built so more games
 Vite + React client → GitHub Pages. The browser connects directly to the
 database over `wss://` — there is no separate API server.
 
+## Fighter — controls & rules
+
+A server-authoritative (30 Hz) 1v1 brawl: procedural thin-line stick figures,
+best-of-3 rounds, and impact juice (hitstop, screen shake, hit sparks, flash).
+
+| Action | Keys |
+|---|---|
+| Move | `A` / `D` (or `←` / `→`) |
+| Crouch (ducks high attacks) | `S` / `↓` |
+| Jump (edge-triggered) | `W` / `↑` / `Space` |
+| Light attack — fast jab | `J` |
+| Heavy attack — slow, big knockback | `K` |
+| Block (hold, omni-directional) | `L` |
+| Dash / back-dash | double-tap `A` / `D` |
+
+First to **2 round-wins** takes the match; a round ends on a KO or on the 40s
+timer (higher HP wins). Crouching ducks under high attacks (heavy/air); a low
+poke (crouch + light) hits low.
+
 ## Layout
 
 ```
@@ -37,7 +56,8 @@ Every push to `master` auto-deploys via GitHub Actions (`.github/workflows/deplo
 
 1. **`publish-module`** — installs the SpacetimeDB CLI, authenticates with the
    `SPACETIME_TOKEN` repo secret, and `spacetime publish`es the module to
-   **Maincloud** (hot-swap — connected players stay connected).
+   **Maincloud** (hot-swap — connected players stay connected). A schema-breaking
+   change falls back to `--delete-data` automatically (game state is ephemeral).
 2. **`deploy-client`** — builds the client (pointed at `wss://maincloud.spacetimedb.com`)
    and deploys it to **GitHub Pages** at https://tomasmen.github.io/rtg/.
 
