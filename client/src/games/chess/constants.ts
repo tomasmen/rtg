@@ -18,6 +18,7 @@ export const BLACK_PIECE = '#1b1b1b';
 export const SELECTED_BG = 'rgba(255, 215, 0, 0.45)';   // currently-picked piece square
 export const LAST_MOVE_BG = 'rgba(255, 235, 100, 0.40)'; // from/to of the last move
 export const CHECK_BG = 'rgba(231, 76, 60, 0.65)';       // king in check
+export const PREMOVE_BG = 'rgba(255, 120, 60, 0.55)';    // queued premove from/to
 export const DEST_DOT = 'rgba(20, 20, 20, 0.30)';        // legal destination dot
 export const CAPTURE_RING = 'rgba(20, 20, 20, 0.30)';    // legal capture ring
 

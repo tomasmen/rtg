@@ -31,6 +31,7 @@ export function ChessGame({ roomId }: { roomId: bigint }) {
   const legal = game.legalMoves ? game.legalMoves.split(',') : [];
   const over = game.status !== 'active';
   const interactive = game.status === 'active' && myColor != null && game.turn === myColor;
+  const premovable = game.status === 'active' && myColor != null && game.turn !== myColor;
 
   const statusText = (() => {
     switch (game.status) {
@@ -62,6 +63,8 @@ export function ChessGame({ roomId }: { roomId: bigint }) {
         check={game.check}
         orientation={myColor === 'b' ? 'black' : 'white'}
         interactive={interactive}
+        premovable={premovable}
+        myColor={myColor}
         onMove={(uci) => void chessMove({ uci })}
       />
       <div className="chess-controls">

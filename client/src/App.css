@@ -340,6 +340,17 @@
   overflow: hidden;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
   user-select: none;
+  touch-action: none; /* let drags work on touch without scrolling */
+}
+/* Piece that follows the cursor/finger while dragging. */
+.chess-drag-piece {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  font-size: clamp(26px, 8vw, 52px);
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 1000;
 }
 .chess-sq {
   position: relative;
