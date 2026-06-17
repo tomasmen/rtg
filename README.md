@@ -1,5 +1,7 @@
 # Office Arcade
 
+**▶ Live:** https://tomasmen.github.io/rtg/ · **Backend dashboard:** https://spacetimedb.com/rtg
+
 A browser-based, real-time multiplayer **office arcade** built on
 [SpacetimeDB](https://spacetimedb.com). Open a URL, see who's online, pick a
 game, and play. First game: a networked 1v1 2D fighter. Built so more games
@@ -29,8 +31,16 @@ npm run dev:client      # vite dev server for the client (separate terminal)
 
 `spacetime dev` hot-swaps the module on save without disconnecting clients.
 
-## Deployment
+## Deployment (automatic)
 
-Pushing to the default branch auto-deploys via GitHub Actions: the module is
-published to SpacetimeDB Maincloud and the client is built and deployed to
-GitHub Pages. (Set up in Phase 1 — see `docs/superpowers/plans/`.)
+Every push to `master` auto-deploys via GitHub Actions (`.github/workflows/deploy.yml`):
+
+1. **`publish-module`** — installs the SpacetimeDB CLI, authenticates with the
+   `SPACETIME_TOKEN` repo secret, and `spacetime publish`es the module to
+   **Maincloud** (hot-swap — connected players stay connected).
+2. **`deploy-client`** — builds the client (pointed at `wss://maincloud.spacetimedb.com`)
+   and deploys it to **GitHub Pages** at https://tomasmen.github.io/rtg/.
+
+`ci.yml` typechecks both packages and builds the client on every push/PR.
+
+To deploy a backend-only change locally instead: `spacetime publish rtg --server maincloud -p server/spacetimedb -y`.
