@@ -13,6 +13,12 @@ import {
 export default __t.row({
   roomId: __t.u64().primaryKey().name("room_id"),
   status: __t.string(),
+  phase: __t.string(),
+  round: __t.u32(),
+  roundWins0: __t.u32().name("round_wins_0"),
+  roundWins1: __t.u32().name("round_wins_1"),
+  pendingWinner: __t.i8().name("pending_winner"),
   tick: __t.u64(),
   endsAtMicros: __t.u64().name("ends_at_micros"),
+  phaseEndsAtMicros: __t.u64().name("phase_ends_at_micros"),
 });

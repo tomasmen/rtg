@@ -44,6 +44,7 @@ import SetNameReducer from "./set_name_reducer";
 // Import all procedure arg schemas
 
 // Import all table schema definitions
+import FightEventRow from "./fight_event_table";
 import FightInputRow from "./fight_input_table";
 import FightMatchRow from "./fight_match_table";
 import FighterRow from "./fighter_table";
@@ -55,6 +56,14 @@ import RoomMemberRow from "./room_member_table";
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
+  fightEvent: __table({
+    name: 'fight_event',
+    indexes: [
+    ],
+    constraints: [
+    ],
+    event: true,
+  }, FightEventRow),
   fightInput: __table({
     name: 'fight_input',
     indexes: [

@@ -11,13 +11,9 @@ import {
 } from "spacetimedb";
 
 export default __t.row({
-  identity: __t.identity().primaryKey(),
   roomId: __t.u64().name("room_id"),
-  moveX: __t.i8().name("move_x"),
-  jump: __t.bool(),
-  light: __t.bool(),
-  heavy: __t.bool(),
-  block: __t.bool(),
-  crouch: __t.bool(),
-  seq: __t.u32(),
+  kind: __t.string(),
+  x: __t.f32(),
+  y: __t.f32(),
+  amount: __t.f32(),
 });

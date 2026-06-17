@@ -13,6 +13,8 @@ import {
 export default {
   moveX: __t.i8(),
   jump: __t.bool(),
-  attack: __t.bool(),
+  light: __t.bool(),
+  heavy: __t.bool(),
   block: __t.bool(),
+  crouch: __t.bool(),
 };

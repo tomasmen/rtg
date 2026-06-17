@@ -10,13 +10,24 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
+export const FightEvent = __t.object("FightEvent", {
+  roomId: __t.u64(),
+  kind: __t.string(),
+  x: __t.f32(),
+  y: __t.f32(),
+  amount: __t.f32(),
+});
+export type FightEvent = __Infer<typeof FightEvent>;
+
 export const FightInput = __t.object("FightInput", {
   identity: __t.identity(),
   roomId: __t.u64(),
   moveX: __t.i8(),
   jump: __t.bool(),
-  attack: __t.bool(),
+  light: __t.bool(),
+  heavy: __t.bool(),
   block: __t.bool(),
+  crouch: __t.bool(),
   seq: __t.u32(),
 });
 export type FightInput = __Infer<typeof FightInput>;
@@ -24,8 +35,14 @@ export type FightInput = __Infer<typeof FightInput>;
 export const FightMatch = __t.object("FightMatch", {
   roomId: __t.u64(),
   status: __t.string(),
+  phase: __t.string(),
+  round: __t.u32(),
+  roundWins0: __t.u32(),
+  roundWins1: __t.u32(),
+  pendingWinner: __t.i8(),
   tick: __t.u64(),
   endsAtMicros: __t.u64(),
+  phaseEndsAtMicros: __t.u64(),
 });
 export type FightMatch = __Infer<typeof FightMatch>;
 
@@ -49,6 +66,15 @@ export const Fighter = __t.object("Fighter", {
   hp: __t.f32(),
   phase: __t.string(),
   phaseFrame: __t.u32(),
+  attackKind: __t.string(),
+  attackHasHit: __t.bool(),
+  stunFrames: __t.u32(),
+  prevJump: __t.bool(),
+  prevLight: __t.bool(),
+  prevHeavy: __t.bool(),
+  prevMoveX: __t.i8(),
+  dashTapDir: __t.i8(),
+  dashTapFrames: __t.u32(),
 });
 export type Fighter = __Infer<typeof Fighter>;
 

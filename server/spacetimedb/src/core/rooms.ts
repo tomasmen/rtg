@@ -60,6 +60,11 @@ export function removeFromRooms(ctx: any): void {
     if (room) {
       const remaining = [...ctx.db.roomMember.roomId.filter(m.roomId)];
       if (remaining.length === 0) {
+        // Last member left: tear down any game-specific state (fighter/match/
+        // tick/input rows) before deleting the room. endGame is idempotent, so
+        // this is safe whether the room was waiting, active, or finished — and
+        // fixes finished matches leaking orphaned fighter rows.
+        endGame(ctx, room);
         ctx.db.gameRoom.id.delete(room.id);
       } else if (room.status === 'active') {
         endGame(ctx, room);

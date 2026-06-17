@@ -23,4 +23,13 @@ export default __t.row({
   hp: __t.f32(),
   phase: __t.string(),
   phaseFrame: __t.u32().name("phase_frame"),
+  attackKind: __t.string().name("attack_kind"),
+  attackHasHit: __t.bool().name("attack_has_hit"),
+  stunFrames: __t.u32().name("stun_frames"),
+  prevJump: __t.bool().name("prev_jump"),
+  prevLight: __t.bool().name("prev_light"),
+  prevHeavy: __t.bool().name("prev_heavy"),
+  prevMoveX: __t.i8().name("prev_move_x"),
+  dashTapDir: __t.i8().name("dash_tap_dir"),
+  dashTapFrames: __t.u32().name("dash_tap_frames"),
 });
