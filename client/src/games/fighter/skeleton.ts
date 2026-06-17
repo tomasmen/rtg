@@ -273,16 +273,18 @@ function applyAttack(
       break;
     }
     case 'heavy': {
-      // leg kick at torso-mid height (a "high" that a crouch ducks under)
+      // committed front kick: the support leg stays braced back while the kicking
+      // leg drives forward at mid-torso height with the knee ON the pelvis→foot
+      // line (no backward-bent knee), torso leans back for balance, back arm out.
       const r = reach(phaseFrame, 7, 13, 22);
-      const x = STANCE + r * 50;
-      s.setFootFront({ x, y: 36 + r * 10 });
-      s.setKneeFront({ x: STANCE + r * 26, y: 30 });
-      // wind the back arm for balance
-      s.setHandBack({ x: -10 - r * 8, y: CHEST_Y });
-      s.setFootBack({ x: -STANCE - r * 4, y: 0 });
-      s.leanNeck(r * 6);
-      s.leanHead(r * 8);
+      s.setFootFront({ x: STANCE + r * 56, y: 36 + r * 20 });  // foot → ~(70, 56)
+      s.setKneeFront({ x: STANCE + r * 28, y: 46 + r * 6 });   // knee tracks the leg line
+      s.setFootBack({ x: -STANCE - 12, y: 0 });                // support leg braced back
+      s.setHandBack({ x: -20 - r * 8, y: CHEST_Y + 4 });       // back arm swings out for balance
+      s.setHandFront({ x: 8 - r * 4, y: CHEST_Y - 2 });        // front guard tucks in
+      s.setElbowFront({ x: 4, y: CHEST_Y - 8 });
+      s.leanNeck(-r * 4); // lean torso back away from the kick
+      s.leanHead(-r * 6);
       break;
     }
     case 'air': {

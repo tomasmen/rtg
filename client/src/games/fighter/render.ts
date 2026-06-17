@@ -38,16 +38,18 @@ export interface DrawMatch {
   roundWins0: number;
   roundWins1: number;
   status: string;           // 'live' | 'done'
+  secondsLeft: number;      // round time remaining (s) while fighting; <0 = hide
 }
 
 export interface DrawScene {
   fighters: DrawFighter[];
   effects: Effects;
   match?: DrawMatch;
+  mySlot: number;           // which fighter is the local player (-1 = unknown)
 }
 
 export function draw(g: CanvasRenderingContext2D, scene: DrawScene): void {
-  const { fighters, effects, match } = scene;
+  const { fighters, effects, match, mySlot } = scene;
 
   // background (drawn outside the shake transform so the void never reveals edges)
   g.fillStyle = '#0f1018';
@@ -80,13 +82,25 @@ export function draw(g: CanvasRenderingContext2D, scene: DrawScene): void {
   // ---- screen space HUD ----
   const slot0 = fighters.find((f) => f.slot === 0);
   const slot1 = fighters.find((f) => f.slot === 1);
-  drawHp(g, 16, slot0?.hp ?? 0, slot0?.name ?? 'P1', false);
-  drawHp(g, CANVAS_W - 16 - 300, slot1?.hp ?? 0, slot1?.name ?? 'P2', true);
+  drawHp(g, 16, slot0?.hp ?? 0, slot0?.name ?? 'P1', false, mySlot === 0, COLORS[0]);
+  drawHp(g, CANVAS_W - 16 - 300, slot1?.hp ?? 0, slot1?.name ?? 'P2', true, mySlot === 1, COLORS[1]);
 
   drawPips(g, 16, match?.roundWins0 ?? 0, false);
   drawPips(g, CANVAS_W - 16, match?.roundWins1 ?? 0, true);
 
+  if (match && match.secondsLeft >= 0) drawTimer(g, match.secondsLeft);
   if (match) drawBanner(g, match);
+}
+
+// Round countdown, centred at the top between the two HP bars.
+function drawTimer(g: CanvasRenderingContext2D, secondsLeft: number): void {
+  g.save();
+  g.font = 'bold 24px system-ui';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillStyle = secondsLeft <= 10 ? '#f87171' : '#f3f4f6';
+  g.fillText(String(secondsLeft), CANVAS_W / 2, 26);
+  g.restore();
 }
 
 function drawFighter(g: CanvasRenderingContext2D, f: DrawFighter, effects: Effects): void {
@@ -165,7 +179,7 @@ function drawSparks(g: CanvasRenderingContext2D, effects: Effects): void {
     const sp = Math.hypot(s.vx, s.vy) || 1;
     const dx = (s.vx / sp) * len;
     const dy = -(s.vy / sp) * len; // sim +y up → canvas down
-    g.strokeStyle = `rgba(253, 224, 71, ${a})`; // warm spark
+    g.strokeStyle = s.blocked ? `rgba(125, 211, 252, ${a})` : `rgba(253, 224, 71, ${a})`; // blocked = cool blue, hit = warm
     g.beginPath();
     g.moveTo(x, y);
     g.lineTo(x - dx, y - dy);
@@ -187,6 +201,8 @@ function drawHp(
   hp: number,
   name: string,
   right: boolean,
+  isMine: boolean,
+  color: string,
 ): void {
   const w = 300;
   const h = 16;
@@ -196,6 +212,16 @@ function drawHp(
   g.fillStyle = pct > 0.3 ? '#34d399' : '#f87171';
   if (right) g.fillRect(x + w * (1 - pct), 16, w * pct, h);
   else g.fillRect(x, 16, w * pct, h);
+  // your own bar gets a coloured outline + a "YOU" tag so it's unmistakable
+  if (isMine) {
+    g.strokeStyle = color;
+    g.lineWidth = 2.5;
+    g.strokeRect(x - 2, 14, w + 4, h + 4);
+    g.fillStyle = color;
+    g.font = 'bold 11px system-ui';
+    g.textAlign = right ? 'right' : 'left';
+    g.fillText('YOU', right ? x + w : x, 11);
+  }
   g.fillStyle = '#f3f4f6';
   g.font = '12px system-ui';
   g.textAlign = right ? 'right' : 'left';

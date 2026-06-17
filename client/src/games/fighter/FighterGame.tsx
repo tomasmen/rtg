@@ -21,10 +21,13 @@ export function FighterGame({ roomId }: { roomId: bigint }) {
   const match = matches.find(m => m.roomId === roomId);
 
   // Stash the latest synced data for the rAF loop (which has stable closures).
-  const dataRef = useRef<{ fighters: typeof mine; players: typeof players; match: typeof match }>({
-    fighters: [], players: [], match: undefined,
+  const dataRef = useRef<{ fighters: typeof mine; players: typeof players; match: typeof match; mySlot: number }>({
+    fighters: [], players: [], match: undefined, mySlot: -1,
   });
-  dataRef.current = { fighters: mine, players, match };
+  dataRef.current = {
+    fighters: mine, players, match,
+    mySlot: mine.find(f => f.identity.toHexString() === identity?.toHexString())?.slot ?? -1,
+  };
 
   // Smoothed on-screen positions per slot (interpolation toward server state).
   const renderRef = useRef<Map<number, { x: number; y: number }>>(new Map());
@@ -108,7 +111,7 @@ export function FighterGame({ roomId }: { roomId: bigint }) {
       const g = cvs?.getContext('2d');
       if (g) {
         const inHitstop = tickEffects(effectsRef.current, dt);
-        const { fighters: fs, players: ps, match: mt } = dataRef.current;
+        const { fighters: fs, players: ps, match: mt, mySlot } = dataRef.current;
         const nameOf = (hex: string) =>
           ps.find(p => p.identity.toHexString() === hex)?.displayName || 'anon';
         const t = now / 1000;
@@ -127,9 +130,14 @@ export function FighterGame({ roomId }: { roomId: bigint }) {
           };
         });
         const dm: DrawMatch | undefined = mt
-          ? { phase: mt.phase, round: mt.round, roundWins0: mt.roundWins0, roundWins1: mt.roundWins1, status: mt.status }
+          ? {
+              phase: mt.phase, round: mt.round, roundWins0: mt.roundWins0, roundWins1: mt.roundWins1, status: mt.status,
+              secondsLeft: mt.phase === 'fighting'
+                ? Math.max(0, Math.ceil((Number(mt.endsAtMicros) / 1000 - Date.now()) / 1000))
+                : -1,
+            }
           : undefined;
-        draw(g, { fighters: draws, effects: effectsRef.current, match: dm });
+        draw(g, { fighters: draws, effects: effectsRef.current, match: dm, mySlot });
       }
       raf = requestAnimationFrame(loop);
     };

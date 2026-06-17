@@ -6,6 +6,7 @@ export interface Spark {
   vx: number;
   vy: number;
   life: number;
+  blocked: boolean; // blocked hits render in a distinct (cool) color
 }
 
 export interface Effects {
@@ -36,7 +37,10 @@ export function pushHit(
   const n = blocked ? Math.floor(SPARK_COUNT / 2) : SPARK_COUNT;
   for (let i = 0; i < n; i++) {
     const a = (Math.PI * 2 * i) / n + Math.random() * 0.4;
-    e.sparks.push({ x, y, vx: Math.cos(a) * 180, vy: Math.sin(a) * 180, life: SPARK_LIFE });
+    // blocked hits spray slower and shorter-lived (a deflection, not a clean burst)
+    const speed = blocked ? 120 : 180;
+    const life = blocked ? Math.floor(SPARK_LIFE * 0.7) : SPARK_LIFE;
+    e.sparks.push({ x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, life, blocked });
   }
 }
 
