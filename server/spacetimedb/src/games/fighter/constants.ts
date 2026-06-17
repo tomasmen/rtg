@@ -31,7 +31,7 @@ export interface MoveDef {
 // Per-attack frame data — the single combat tuning table. Tuned snappy: short
 // startup + recovery so moves don't linger. (skeleton.ts mirrors these windows.)
 export const MOVES: Record<Exclude<AttackKind, 'none'>, MoveDef> = {
-  light: { startup: 2, activeTo: 5,  total: 7,  range: 70, dmg: 6,  hitstun: 8,  kb: 120, hitsCrouch: true,  blockstun: 6, chip: 0 },
+  light: { startup: 2, activeTo: 5,  total: 7,  range: 70, dmg: 6,  hitstun: 6,  kb: 160, hitsCrouch: true,  blockstun: 6, chip: 0 },
   heavy: { startup: 5, activeTo: 10, total: 16, range: 95, dmg: 13, hitstun: 13, kb: 340, hitsCrouch: false, blockstun: 9, chip: 2 },
   air:   { startup: 3, activeTo: 12, total: 15, range: 75, dmg: 8,  hitstun: 11, kb: 200, hitsCrouch: false, blockstun: 8, chip: 1 },
   low:   { startup: 4, activeTo: 8,  total: 12, range: 75, dmg: 5,  hitstun: 9,  kb: 120, hitsCrouch: true,  blockstun: 6, chip: 0 },
@@ -41,12 +41,18 @@ export const DASH_TAP_WINDOW = 9;  // frames between taps to trigger a dash
 export const DASH_SPEED = 640;
 export const DASH_FRAMES = 6;
 
+// Recovery gap enforced after any attack before the next can start. Combined with
+// the shorter light hitstun, this guarantees a victim an escape window (~6 frames)
+// instead of being trapped in a point-blank light-attack spam-lock.
+export const ATTACK_COOLDOWN = 6;
+
 // ---- Stamina ----
 // Jumping, holding block, and getting hit while blocking spend stamina. It
 // regenerates after a short idle delay; you cannot jump/block while empty, and
 // fully draining it imposes a longer cooldown before regen resumes.
 export const MAX_STAMINA = 100;
 export const JUMP_COST = 25;           // per jump
+export const HEAVY_COST = 20;          // per heavy attack (gated when too low)
 export const BLOCK_DRAIN = 0.55;       // per frame while holding block (~16/s)
 export const BLOCK_HIT_COST = 18;      // chunk lost when a hit is blocked
 export const STAMINA_REGEN = 0.8;      // per frame once regen starts (~24/s)

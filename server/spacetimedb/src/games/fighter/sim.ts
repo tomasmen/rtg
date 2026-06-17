@@ -1,8 +1,8 @@
 import {
   ARENA_W, GROUND_Y, FIGHTER_W, FIGHTER_H, CROUCH_H, GRAVITY, MOVE_SPEED,
   AIR_CONTROL, JUMP_V, MAX_HP, GROUND_FRICTION,
-  DASH_TAP_WINDOW, DASH_SPEED, DASH_FRAMES,
-  MAX_STAMINA, JUMP_COST, BLOCK_DRAIN, BLOCK_HIT_COST, STAMINA_REGEN, REGEN_DELAY, EMPTY_REGEN_DELAY,
+  DASH_TAP_WINDOW, DASH_SPEED, DASH_FRAMES, ATTACK_COOLDOWN,
+  MAX_STAMINA, JUMP_COST, HEAVY_COST, BLOCK_DRAIN, BLOCK_HIT_COST, STAMINA_REGEN, REGEN_DELAY, EMPTY_REGEN_DELAY,
   MOVES, type AttackKind,
 } from './constants';
 
@@ -17,8 +17,9 @@ export interface FighterState {
   attackHasHit: boolean;      // prevents an active window from multi-hitting
   airAttackUsed: boolean;     // one air attack per jump
   stunFrames: number;         // length of the current hitstun/blockstun (frames)
-  stamina: number;            // 0..MAX_STAMINA — spent by jump/block
+  stamina: number;            // 0..MAX_STAMINA — spent by jump/block/heavy
   staminaCd: number;          // frames until stamina regen may resume
+  attackCd: number;           // recovery gap before the next attack may start
   // input-edge & dash memory (sim-internal; persisted on the fighter row):
   prevJump: boolean; prevLight: boolean; prevHeavy: boolean;
   prevMoveX: number; dashTapDir: number; dashTapFrames: number;
@@ -59,6 +60,7 @@ export function initialFighter(slot: number): FighterState {
     stunFrames: 0,
     stamina: MAX_STAMINA,
     staminaCd: 0,
+    attackCd: 0,
     prevJump: false,
     prevLight: false,
     prevHeavy: false,
@@ -95,6 +97,7 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number): FighterState 
   if (f.phase === 'attack' && f.phaseFrame >= MOVES[f.attackKind as Exclude<AttackKind, 'none'>].total) {
     f.phase = grounded ? 'idle' : 'jump';
     f.attackKind = 'none';
+    f.attackCd = ATTACK_COOLDOWN; // brief recovery before the next attack
   }
   if ((f.phase === 'hitstun' || f.phase === 'blockstun') && f.phaseFrame >= f.stunFrames) {
     f.phase = grounded ? 'idle' : 'jump';
@@ -130,10 +133,12 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number): FighterState 
   if (!locked) {
     if (grounded) {
       // grounded action priority: heavy -> light/low -> dash -> block -> crouch -> locomotion(+jump)
-      if (heavyEdge) {
+      if (heavyEdge && f.attackCd === 0 && f.stamina >= HEAVY_COST) {
         startAttack(f, 'heavy');
         f.vx = 0;
-      } else if (lightEdge) {
+        f.stamina -= HEAVY_COST;
+        f.staminaCd = f.stamina <= 0 ? EMPTY_REGEN_DELAY : REGEN_DELAY;
+      } else if (lightEdge && f.attackCd === 0) {
         startAttack(f, input.crouch ? 'low' : 'light');
         f.vx = 0;
       } else if (dashTriggered !== 0) {
@@ -225,6 +230,8 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number): FighterState 
   } else if (f.stamina < MAX_STAMINA) {
     f.stamina = Math.min(MAX_STAMINA, f.stamina + STAMINA_REGEN);
   }
+
+  if (f.attackCd > 0) f.attackCd -= 1;
 
   // --- phase frame counter ---
   // A freshly-entered phase counts as its first elapsed frame (1); continuing

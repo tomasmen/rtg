@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { step, initialFighter, type Inputs, type MatchState } from './sim';
 import {
   ARENA_W, FIGHTER_W, MOVE_SPEED, DT, GROUND_Y, MAX_HP, MOVES,
-  JUMP_COST, BLOCK_HIT_COST,
+  JUMP_COST, HEAVY_COST, BLOCK_HIT_COST,
 } from './constants';
 
 const NEUTRAL: Inputs = { moveX: 0, jump: false, light: false, heavy: false, block: false, crouch: false };
@@ -330,5 +330,32 @@ describe('stamina', () => {
     }
     expect(['block', 'blockstun']).toContain(s.fighters[1].phase); // still guarding
     expect(s.fighters[1].stamina).toBeLessThanOrEqual(start - BLOCK_HIT_COST + 1);
+  });
+});
+
+describe('attack cooldown + heavy stamina', () => {
+  it('cannot immediately re-attack after a light (cooldown gap lets the victim escape)', () => {
+    const a = initialFighter(0); const b = initialFighter(1);
+    let s = m(a, b);
+    for (let i = 0; i < MOVES.light.total + 1; i++) s = step(s, [{ ...NEUTRAL, light: true }, NEUTRAL], DT);
+    s = step(s, [NEUTRAL, NEUTRAL], DT);                              // release
+    const r = step(s, [{ ...NEUTRAL, light: true }, NEUTRAL], DT);    // re-press immediately
+    expect(r.fighters[0].phase).not.toBe('attack');                  // blocked by cooldown
+    expect(r.fighters[0].attackCd).toBeGreaterThan(0);
+  });
+
+  it('heavy costs stamina and is blocked when too low', () => {
+    const a = initialFighter(0); const b = initialFighter(1);
+    const start = a.stamina;
+    let s = m(a, b);
+    s = step(s, [{ ...NEUTRAL, heavy: true }, NEUTRAL], DT);
+    expect(s.fighters[0].attackKind).toBe('heavy');
+    expect(s.fighters[0].stamina).toBe(start - HEAVY_COST);
+    // not enough stamina → no heavy
+    const a2 = initialFighter(0); const b2 = initialFighter(1);
+    a2.stamina = HEAVY_COST - 1;
+    let s2 = m(a2, b2);
+    s2 = step(s2, [{ ...NEUTRAL, heavy: true }, NEUTRAL], DT);
+    expect(s2.fighters[0].attackKind).not.toBe('heavy');
   });
 });

@@ -1,18 +1,27 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useTable, useReducer, useSpacetimeDB } from 'spacetimedb/react';
 import { tables, reducers } from './module_bindings';
 import { Arcade } from './arcade/Arcade';
 import { WaitingRoom } from './arcade/WaitingRoom';
 import './App.css';
 
+const SAVED_NAME_KEY = 'rtg_name';
+
 export default function App() {
   const { isActive, identity } = useSpacetimeDB();
   const [players] = useTable(tables.player);
   const setName = useReducer(reducers.setName);
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState(() => localStorage.getItem(SAVED_NAME_KEY) ?? '');
 
   const myHex = identity?.toHexString();
   const me = players.find(p => p.identity.toHexString() === myHex);
+
+  // Re-apply the saved display name once connected (e.g. after a reload or a
+  // server-side data reset) so the player never has to re-type it.
+  useEffect(() => {
+    const saved = localStorage.getItem(SAVED_NAME_KEY);
+    if (isActive && me && !me.displayName && saved) void setName({ name: saved });
+  }, [isActive, me, setName]);
 
   // location is 'arcade' or '<gameId>:<roomId>' — route on it.
   const myRoomId = (() => {
@@ -25,6 +34,7 @@ export default function App() {
     e.preventDefault();
     const name = draft.trim();
     if (name) {
+      localStorage.setItem(SAVED_NAME_KEY, name);
       void setName({ name });
       setDraft('');
     }
