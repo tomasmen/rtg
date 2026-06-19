@@ -270,6 +270,86 @@
 .controls-hint b {
   color: var(--text-h);
 }
+
+/* ---- fighter controls panel (game-style keycap legend) ---- */
+.controls-panel {
+  display: flex;
+  align-items: stretch;
+  gap: 22px;
+  padding: 12px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.15));
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.kc-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.kc-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+}
+.kc-binds {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.kc-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
+}
+.kc-bind {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kc-keys {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.kc-key-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.kc-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 26px;
+  padding: 0 7px;
+  font: 700 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--text-h);
+  background: linear-gradient(180deg, #30333f, #1b1d26);
+  border: 1px solid #3c4050;
+  border-bottom-width: 3px;
+  border-radius: 6px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.kc-plus {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+}
+.kc-tap {
+  color: var(--text);
+  font-size: 11px;
+  font-style: italic;
+}
+.kc-label {
+  color: var(--text-h);
+  font-size: 13px;
+  white-space: nowrap;
+}
 .leave-game {
   padding: 8px 16px;
   border-radius: 8px;

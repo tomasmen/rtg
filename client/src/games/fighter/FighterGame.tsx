@@ -4,6 +4,7 @@ import { tables, reducers } from '../../module_bindings';
 import { draw, type DrawFighter, type DrawMatch } from './render';
 import { newEffects, pushHit, tickEffects, type Effects } from './effects';
 import { playSfx } from './audio';
+import { Controls } from './Controls';
 import { CANVAS_W, CANVAS_H, SHAKE_MAX } from './constants';
 
 export function FighterGame({ roomId }: { roomId: bigint }) {
@@ -166,9 +167,7 @@ export function FighterGame({ roomId }: { roomId: bigint }) {
   return (
     <section className="fighter">
       <canvas ref={canvasRef} width={CANVAS_W} height={CANVAS_H} className="arena" />
-      <div className="controls-hint">
-        Move <b>A/D</b> · Crouch <b>S</b> · Jump <b>W</b> · Light <b>J</b> · Heavy <b>K</b> · Block <b>L</b> · Dash <b>double-tap A/D</b>
-      </div>
+      <Controls />
       {!result && (
         <button className="leave-game" onClick={() => void leaveRoom()}>Leave</button>
       )}
