@@ -23,7 +23,7 @@ export interface Joints {
 }
 
 // Attack kinds the pose function understands. Mirrors the server `AttackKind`.
-export type AttackKind = 'none' | 'light' | 'heavy' | 'air' | 'low';
+export type AttackKind = 'none' | 'light' | 'heavy' | 'air' | 'low' | 'sweep';
 
 // Canonical standing reference heights (facing-right frame; +y up).
 const PELVIS_Y = 52;
@@ -310,6 +310,22 @@ function applyAttack(
       s.setElbowBack({ x: 2, y: PELVIS_Y });
       s.leanNeck(r * 2);
       s.leanHead(r * 3);
+      break;
+    }
+    case 'sweep': {
+      // committed low sweep: the front leg scythes out long and low along the
+      // floor while the body drops forward over a planted support leg, back hand
+      // braced low for balance. Reads as a big, slow ground kick (a knockdown).
+      const r = reach(phaseFrame, 6, 11, 20);
+      s.setFootFront({ x: STANCE + r * 70, y: 6 });          // foot skims the floor, long reach
+      s.setKneeFront({ x: STANCE + r * 34, y: 14 });
+      s.setFootBack({ x: -STANCE - 8, y: 0 });               // planted support leg
+      s.setHandBack({ x: -12 + r * 8, y: PELVIS_Y - 22 });   // back arm braces low
+      s.setHandFront({ x: 14 + r * 10, y: PELVIS_Y - 4 });
+      s.setElbowBack({ x: -6, y: PELVIS_Y - 8 });
+      s.setElbowFront({ x: 8, y: PELVIS_Y - 2 });
+      s.leanNeck(r * 9);   // crouch the torso forward into the sweep
+      s.leanHead(r * 12);
       break;
     }
     default:

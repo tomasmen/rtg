@@ -24,7 +24,12 @@ export const SHAKE_DECAY = 0.8;  // per-frame multiplier (settles in ~6 frames)
 export const SHAKE_PER_DMG = 0.6;// shake magnitude per damage point
 export const SHAKE_MAX = 8;      // px cap — keeps heavies impactful without lurching the 360px arena
 export const FLASH_FRAMES = 5;
-export const HITSTOP_FRAMES = 4;
-export const BLOCK_HITSTOP_FRAMES = 2; // lighter freeze on block so blockstrings don't stutter
+// Hitstop (impact freeze-frame) scales with damage so light pokes barely stop the
+// action and heavies still pop — keeps combat flowing instead of stuttering on
+// every touch. Light (6dmg)→~2f, sweep (11)→~3f, heavy (13)→4f.
+export const HITSTOP_PER_DMG = 0.3; // frames of freeze per damage point
+export const HITSTOP_MIN = 1;
+export const HITSTOP_MAX = 4;
+export const BLOCK_HITSTOP_FRAMES = 1; // minimal freeze on block so blockstrings don't stutter
 export const SPARK_COUNT = 8;
 export const SPARK_LIFE = 14;    // frames

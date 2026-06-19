@@ -1,4 +1,4 @@
-import { SHAKE_DECAY, SHAKE_PER_DMG, SHAKE_MAX, FLASH_FRAMES, HITSTOP_FRAMES, BLOCK_HITSTOP_FRAMES, SPARK_COUNT, SPARK_LIFE } from './constants';
+import { SHAKE_DECAY, SHAKE_PER_DMG, SHAKE_MAX, FLASH_FRAMES, HITSTOP_PER_DMG, HITSTOP_MIN, HITSTOP_MAX, BLOCK_HITSTOP_FRAMES, SPARK_COUNT, SPARK_LIFE } from './constants';
 
 export interface Spark {
   x: number;
@@ -28,7 +28,11 @@ export function pushHit(
   blocked: boolean,
 ): void {
   e.shake = Math.min(SHAKE_MAX, e.shake + amount * SHAKE_PER_DMG);
-  e.hitstop = Math.max(e.hitstop, blocked ? BLOCK_HITSTOP_FRAMES : HITSTOP_FRAMES);
+  // scale the freeze by hit strength: light pokes barely stop, heavies pop
+  const hs = blocked
+    ? BLOCK_HITSTOP_FRAMES
+    : Math.max(HITSTOP_MIN, Math.min(HITSTOP_MAX, Math.round(amount * HITSTOP_PER_DMG)));
+  e.hitstop = Math.max(e.hitstop, hs);
   if (blocked) {
     e.shake = Math.max(e.shake, 2.5); // a 0-chip block still gets a small cue
   } else if (victimSlot === 0 || victimSlot === 1) {

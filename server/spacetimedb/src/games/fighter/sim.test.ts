@@ -351,6 +351,30 @@ describe('stamina', () => {
   });
 });
 
+describe('A2.10 sweep (crouch + heavy)', () => {
+  it('crouch+heavy performs a SWEEP, not a standing heavy', () => {
+    const a = initialFighter(0); const b = initialFighter(1);
+    a.x = 400; b.x = 470;
+    let s = m(a, b);
+    const startStam = a.stamina;
+    s = step(s, [{ ...NEUTRAL, heavy: true, crouch: true }, NEUTRAL], DT); // startup frame 1
+    expect(s.fighters[0].attackKind).toBe('sweep');
+    expect(s.fighters[0].stamina).toBe(startStam - HEAVY_COST); // sweep costs heavy stamina
+  });
+
+  it('the sweep is a LOW: it connects on a crouching opponent (where the high heavy whiffs)', () => {
+    const a = initialFighter(0); const b = initialFighter(1);
+    a.x = 400; b.x = 470;
+    let s = m(a, b);
+    for (let i = 0; i < MOVES.sweep.total; i++) {
+      s = step(s, [{ ...NEUTRAL, heavy: true, crouch: true }, { ...NEUTRAL, crouch: true }], DT);
+    }
+    expect(s.fighters[1].hp).toBe(MAX_HP - MOVES.sweep.dmg); // sweep hit the croucher
+    expect(MOVES.sweep.hitsCrouch).toBe(true);
+    expect(MOVES.heavy.hitsCrouch).toBe(false); // contrast: standing heavy is a duckable high
+  });
+});
+
 describe('config: per-room ruleset', () => {
   const OFF = parseFightConfig('stam=off;hp=150');
 

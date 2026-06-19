@@ -13,7 +13,7 @@ export const JUMP_V = 760;
 export const MAX_HP = 100;
 export const GROUND_FRICTION = 1800; // u/s^2 applied to knockback slide
 
-export type AttackKind = 'none' | 'light' | 'heavy' | 'air' | 'low';
+export type AttackKind = 'none' | 'light' | 'heavy' | 'air' | 'low' | 'sweep';
 
 export interface MoveDef {
   startup: number;   // first active frame
@@ -35,6 +35,10 @@ export const MOVES: Record<Exclude<AttackKind, 'none'>, MoveDef> = {
   heavy: { startup: 5, activeTo: 10, total: 16, range: 95, dmg: 13, hitstun: 13, kb: 340, hitsCrouch: false, blockstun: 9, chip: 2 },
   air:   { startup: 3, activeTo: 12, total: 15, range: 75, dmg: 8,  hitstun: 11, kb: 200, hitsCrouch: false, blockstun: 8, chip: 1 },
   low:   { startup: 4, activeTo: 8,  total: 12, range: 75, dmg: 5,  hitstun: 9,  kb: 120, hitsCrouch: true,  blockstun: 6, chip: 0 },
+  // crouch + heavy: a committed low sweep. Unlike the standing heavy (a high that
+  // whiffs over a crouch), the sweep hits low (hitsCrouch) and lands a long-hitstun
+  // knockdown with big knockback — slow to start/recover, so it's a read.
+  sweep: { startup: 6, activeTo: 11, total: 20, range: 90, dmg: 11, hitstun: 18, kb: 380, hitsCrouch: true,  blockstun: 11, chip: 2 },
 };
 
 export const DASH_TAP_WINDOW = 9;  // frames between taps to trigger a dash

@@ -147,9 +147,10 @@ function stepFighter(f0: FighterState, input: Inputs, dt: number, cfg: FightConf
 
   if (!locked) {
     if (grounded) {
-      // grounded action priority: heavy -> light/low -> dash -> block -> crouch -> locomotion(+jump)
+      // grounded action priority: heavy/sweep -> light/low -> dash -> block -> crouch -> locomotion(+jump)
       if (heavyEdge && f.attackCd === 0 && (!stam.enabled || (!f.exhausted && f.stamina >= stam.heavyCost))) {
-        startAttack(f, 'heavy');
+        // crouch + heavy = sweep (a low knockdown); standing heavy = the high kick
+        startAttack(f, input.crouch ? 'sweep' : 'heavy');
         f.vx = 0;
         if (stam.enabled) {
           f.stamina -= stam.heavyCost;
