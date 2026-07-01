@@ -44,7 +44,9 @@ function doJoinRoom(ctx: any, roomId: bigint): void {
   if (slot === null) throw new Error('room full');
   ctx.db.roomMember.insert({ id: 0n, roomId, identity: ctx.sender, slot });
   setLocation(ctx, `${room.gameId}:${roomId}`);
-  if (isFull(current.length + 1, game.maxPlayers)) {
+  // Fixed-size games (Fighter, Chess) auto-start when full. Variable-size games
+  // (Monopoly, 2–6) instead wait for the host to press Start (see startRoom).
+  if (game.minPlayers === game.maxPlayers && isFull(current.length + 1, game.maxPlayers)) {
     const active = { ...room, status: 'active' };
     ctx.db.gameRoom.id.update(active);
     startGame(ctx, active);
@@ -86,6 +88,24 @@ export const createRoom = spacetimedb.reducer(
 export const joinRoom = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId }) => {
   if (inARoom(ctx)) throw new Error('already in a room');
   doJoinRoom(ctx, roomId);
+});
+
+// Host-triggered start for variable-size games (Monopoly). The room creator can
+// start once at least minPlayers are seated; the room is still 'waiting'.
+export const startRoom = spacetimedb.reducer(ctx => {
+  const mine = [...ctx.db.roomMember.identity.filter(ctx.sender)];
+  if (mine.length === 0) throw new Error('not in a room');
+  const room = ctx.db.gameRoom.id.find(mine[0].roomId);
+  if (!room) throw new Error('no such room');
+  if (room.status !== 'waiting') throw new Error('already started');
+  if (!room.createdBy.equals(ctx.sender)) throw new Error('only the host can start');
+  const game = getGame(room.gameId);
+  if (!game) throw new Error('unknown game');
+  const count = [...ctx.db.roomMember.roomId.filter(room.id)].length;
+  if (count < game.minPlayers) throw new Error('need more players to start');
+  const active = { ...room, status: 'active' };
+  ctx.db.gameRoom.id.update(active);
+  startGame(ctx, active);
 });
 
 export const quickMatch = spacetimedb.reducer({ gameId: t.string() }, (ctx, { gameId }) => {

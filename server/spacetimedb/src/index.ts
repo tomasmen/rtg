@@ -6,6 +6,7 @@
 export { default } from './schema';
 
 export { onConnect, onDisconnect, setName } from './core/presence';
-export { createRoom, joinRoom, quickMatch, leaveRoom } from './core/rooms';
+export { createRoom, joinRoom, quickMatch, leaveRoom, startRoom } from './core/rooms';
 export { fighterTick, setInput } from './games/fighter/match';
 export { chessMove, chessResign, chessClaimTimeout } from './games/chess/match';
+export { monopolyRoll, monopolyEndTurn } from './games/monopoly/match';

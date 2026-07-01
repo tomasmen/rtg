@@ -12,9 +12,12 @@ import ChessResignReducer from "../chess_resign_reducer";
 import CreateRoomReducer from "../create_room_reducer";
 import JoinRoomReducer from "../join_room_reducer";
 import LeaveRoomReducer from "../leave_room_reducer";
+import MonopolyEndTurnReducer from "../monopoly_end_turn_reducer";
+import MonopolyRollReducer from "../monopoly_roll_reducer";
 import QuickMatchReducer from "../quick_match_reducer";
 import SetInputReducer from "../set_input_reducer";
 import SetNameReducer from "../set_name_reducer";
+import StartRoomReducer from "../start_room_reducer";
 
 export type ChessClaimTimeoutParams = __Infer<typeof ChessClaimTimeoutReducer>;
 export type ChessMoveParams = __Infer<typeof ChessMoveReducer>;
@@ -22,7 +25,10 @@ export type ChessResignParams = __Infer<typeof ChessResignReducer>;
 export type CreateRoomParams = __Infer<typeof CreateRoomReducer>;
 export type JoinRoomParams = __Infer<typeof JoinRoomReducer>;
 export type LeaveRoomParams = __Infer<typeof LeaveRoomReducer>;
+export type MonopolyEndTurnParams = __Infer<typeof MonopolyEndTurnReducer>;
+export type MonopolyRollParams = __Infer<typeof MonopolyRollReducer>;
 export type QuickMatchParams = __Infer<typeof QuickMatchReducer>;
 export type SetInputParams = __Infer<typeof SetInputReducer>;
 export type SetNameParams = __Infer<typeof SetNameReducer>;
+export type StartRoomParams = __Infer<typeof StartRoomReducer>;
 

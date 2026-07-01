@@ -40,9 +40,12 @@ import ChessResignReducer from "./chess_resign_reducer";
 import CreateRoomReducer from "./create_room_reducer";
 import JoinRoomReducer from "./join_room_reducer";
 import LeaveRoomReducer from "./leave_room_reducer";
+import MonopolyEndTurnReducer from "./monopoly_end_turn_reducer";
+import MonopolyRollReducer from "./monopoly_roll_reducer";
 import QuickMatchReducer from "./quick_match_reducer";
 import SetInputReducer from "./set_input_reducer";
 import SetNameReducer from "./set_name_reducer";
+import StartRoomReducer from "./start_room_reducer";
 
 // Import all procedure arg schemas
 
@@ -53,6 +56,9 @@ import FightInputRow from "./fight_input_table";
 import FightMatchRow from "./fight_match_table";
 import FighterRow from "./fighter_table";
 import GameRoomRow from "./game_room_table";
+import MonopolyGameRow from "./monopoly_game_table";
+import MonopolyPlayerRow from "./monopoly_player_table";
+import MonopolyPropertyRow from "./monopoly_property_table";
 import PlayerRow from "./player_table";
 import RoomMemberRow from "./room_member_table";
 
@@ -132,6 +138,48 @@ const tablesSchema = __schema({
       { name: 'game_room_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, GameRoomRow),
+  monopolyGame: __table({
+    name: 'monopoly_game',
+    indexes: [
+      { accessor: 'roomId', name: 'monopoly_game_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'monopoly_game_room_id_key', constraint: 'unique', columns: ['roomId'] },
+    ],
+  }, MonopolyGameRow),
+  monopolyPlayer: __table({
+    name: 'monopoly_player',
+    indexes: [
+      { accessor: 'id', name: 'monopoly_player_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'identity', name: 'monopoly_player_identity_idx_btree', algorithm: 'btree', columns: [
+        'identity',
+      ] },
+      { accessor: 'roomId', name: 'monopoly_player_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'monopoly_player_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, MonopolyPlayerRow),
+  monopolyProperty: __table({
+    name: 'monopoly_property',
+    indexes: [
+      { accessor: 'id', name: 'monopoly_property_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'roomId', name: 'monopoly_property_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'monopoly_property_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, MonopolyPropertyRow),
   player: __table({
     name: 'player',
     indexes: [
@@ -170,9 +218,12 @@ const reducersSchema = __reducers(
   __reducerSchema("create_room", CreateRoomReducer),
   __reducerSchema("join_room", JoinRoomReducer),
   __reducerSchema("leave_room", LeaveRoomReducer),
+  __reducerSchema("monopoly_end_turn", MonopolyEndTurnReducer),
+  __reducerSchema("monopoly_roll", MonopolyRollReducer),
   __reducerSchema("quick_match", QuickMatchReducer),
   __reducerSchema("set_input", SetInputReducer),
   __reducerSchema("set_name", SetNameReducer),
+  __reducerSchema("start_room", StartRoomReducer),
 );
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */

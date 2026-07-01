@@ -118,6 +118,46 @@ export const GameRoom = __t.object("GameRoom", {
 });
 export type GameRoom = __Infer<typeof GameRoom>;
 
+export const MonopolyGame = __t.object("MonopolyGame", {
+  roomId: __t.u64(),
+  status: __t.string(),
+  phase: __t.string(),
+  currentSeat: __t.u8(),
+  seatCount: __t.u8(),
+  die1: __t.u8(),
+  die2: __t.u8(),
+  doublesThisTurn: __t.u8(),
+  pendingSpace: __t.i8(),
+  winnerSeat: __t.i8(),
+  log: __t.string(),
+});
+export type MonopolyGame = __Infer<typeof MonopolyGame>;
+
+export const MonopolyPlayer = __t.object("MonopolyPlayer", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  identity: __t.identity(),
+  seat: __t.u8(),
+  vanStyle: __t.u8(),
+  cash: __t.i32(),
+  position: __t.u8(),
+  inJail: __t.bool(),
+  jailTurns: __t.u8(),
+  getOutCards: __t.u8(),
+  bankrupt: __t.bool(),
+});
+export type MonopolyPlayer = __Infer<typeof MonopolyPlayer>;
+
+export const MonopolyProperty = __t.object("MonopolyProperty", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  spaceIdx: __t.u8(),
+  ownerSeat: __t.i8(),
+  houses: __t.u8(),
+  mortgaged: __t.bool(),
+});
+export type MonopolyProperty = __Infer<typeof MonopolyProperty>;
+
 export const Player = __t.object("Player", {
   identity: __t.identity(),
   displayName: __t.string(),

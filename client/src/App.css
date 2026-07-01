@@ -728,3 +728,191 @@
   border-color: #f87171;
   box-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
 }
+
+/* ---- Monopoly (3D board + HUD overlay) ---- */
+.mono {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(96vw, 1120px);
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+.mono-stage {
+  position: relative;
+  width: 100%;
+  height: 64vh;
+  min-height: 440px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #0d0e13;
+  box-shadow: var(--shadow);
+}
+.mono-stage canvas {
+  display: block;
+  touch-action: none;
+}
+/* turn + dice, top-left */
+.mono-turn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: rgba(13, 14, 19, 0.72);
+  border: 1px solid var(--border-2);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+}
+.mono-turn-who {
+  font-weight: 700;
+  color: var(--text-h);
+}
+.mono-dice {
+  display: flex;
+  gap: 6px;
+}
+.mono-die {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  width: 34px;
+  height: 34px;
+  padding: 4px;
+  background: #f5f7fa;
+  border-radius: 7px;
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+}
+.mono-die .pip {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: transparent;
+}
+.mono-die .pip.on {
+  background: #14091f;
+}
+/* action bar, bottom-center */
+.mono-actions {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.mono-btn {
+  padding: 11px 26px;
+  border-radius: 11px;
+  border: 1px solid transparent;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: filter 0.14s ease, transform 0.1s ease;
+}
+.mono-btn.primary {
+  background: var(--grad-accent);
+  color: #14091f;
+}
+.mono-btn.primary:hover {
+  filter: brightness(1.08);
+}
+.mono-btn.primary:active {
+  transform: translateY(1px);
+}
+.mono-wait {
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(13, 14, 19, 0.72);
+  border: 1px solid var(--border-2);
+  color: var(--text);
+  font-size: 14px;
+}
+/* player panel, top-right, scrollable */
+.mono-players {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 210px;
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mono-pcard {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  background: rgba(20, 22, 32, 0.82);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+}
+.mono-pcard.current {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 1px var(--accent-border), 0 0 14px rgba(192, 132, 252, 0.25);
+}
+.mono-swatch {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  flex: none;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+.mono-pinfo {
+  min-width: 0;
+  flex: 1;
+}
+.mono-pname {
+  color: var(--text-h);
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mono-you {
+  font-size: 10px;
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 0 6px;
+}
+.mono-pmeta {
+  color: var(--text);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mono-log {
+  color: var(--text);
+  font-size: 13px;
+  text-align: center;
+  min-height: 18px;
+}
+/* waiting-room host controls */
+.waiting-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+.start-game {
+  padding: 8px 18px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: var(--grad-accent);
+  color: #14091f;
+  font-weight: 700;
+  cursor: pointer;
+}
+.start-game:hover {
+  filter: brightness(1.08);
+}
