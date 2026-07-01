@@ -38,27 +38,33 @@ export function PoolGame({ roomId }: { roomId: bigint }) {
     { charging: false, angle: 0, power: 0, hoverAngle: 0, ghost: null }
   );
 
-  // ---- pointer input (slingshot aim + ball-in-hand placement) ----
+  // ---- pointer input (slingshot aim + ball-in-hand). Listeners live on window
+  // and resolve the canvas at event time, so they work no matter when the canvas
+  // mounts (the game row arrives a frame after this component first renders). ----
   useEffect(() => {
-    const cvs = canvasRef.current;
-    if (!cvs) return;
+    const rectOf = () => canvasRef.current?.getBoundingClientRect() ?? null;
     const toWorld = (e: PointerEvent) => {
-      const r = cvs.getBoundingClientRect();
+      const r = rectOf();
+      if (!r) return null;
       const px = (e.clientX - r.left) * (CANVAS_W / r.width);
       const py = (e.clientY - r.top) * (CANVAS_H / r.height);
       return { x: ux(px), y: uy(py) };
+    };
+    const overCanvas = (e: PointerEvent) => {
+      const r = rectOf();
+      return !!r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
     };
     const cue = () => {
       const c = dataRef.current.balls.find(b => b.num === 0 && !b.pocketed);
       return c ? { x: c.x, y: c.y } : null;
     };
-
     const move = (e: PointerEvent) => {
       const g = dataRef.current.game;
       if (!g || !dataRef.current.myTurn) return;
       const w = toWorld(e);
-      const c = cue();
+      if (!w) return;
       if (g.phase === 'ballinhand') { inputRef.current.ghost = w; return; }
+      const c = cue();
       if (!c) return;
       if (inputRef.current.charging) {
         const dist = Math.hypot(w.x - c.x, w.y - c.y);
@@ -70,27 +76,27 @@ export function PoolGame({ roomId }: { roomId: bigint }) {
     };
     const down = (e: PointerEvent) => {
       const g = dataRef.current.game;
-      if (!g || !dataRef.current.myTurn) return;
+      if (!g || !dataRef.current.myTurn || !overCanvas(e)) return;
       const w = toWorld(e);
+      if (!w) return;
       if (g.phase === 'ballinhand') { void placeCue({ x: w.x, y: w.y }); inputRef.current.ghost = null; return; }
       if (g.phase === 'aiming') { inputRef.current.charging = true; move(e); }
     };
     const up = () => {
       const inp = inputRef.current;
-      if (inp.charging) {
-        inp.charging = false;
-        if (inp.power > 0.05 && dataRef.current.game?.phase === 'aiming' && dataRef.current.myTurn) {
-          void shoot({ angle: inp.angle, power: inp.power });
-        }
-        inp.power = 0;
+      if (!inp.charging) return;
+      inp.charging = false;
+      if (inp.power > 0.05 && dataRef.current.game?.phase === 'aiming' && dataRef.current.myTurn) {
+        void shoot({ angle: inp.angle, power: inp.power });
       }
+      inp.power = 0;
     };
-    cvs.addEventListener('pointermove', move);
-    cvs.addEventListener('pointerdown', down);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerdown', down);
     window.addEventListener('pointerup', up);
     return () => {
-      cvs.removeEventListener('pointermove', move);
-      cvs.removeEventListener('pointerdown', down);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerdown', down);
       window.removeEventListener('pointerup', up);
     };
   }, [shoot, placeCue]);
