@@ -42,6 +42,8 @@ import JoinRoomReducer from "./join_room_reducer";
 import LeaveRoomReducer from "./leave_room_reducer";
 import MonopolyEndTurnReducer from "./monopoly_end_turn_reducer";
 import MonopolyRollReducer from "./monopoly_roll_reducer";
+import PoolPlaceCueReducer from "./pool_place_cue_reducer";
+import PoolShootReducer from "./pool_shoot_reducer";
 import QuickMatchReducer from "./quick_match_reducer";
 import SetInputReducer from "./set_input_reducer";
 import SetNameReducer from "./set_name_reducer";
@@ -60,6 +62,9 @@ import MonopolyGameRow from "./monopoly_game_table";
 import MonopolyPlayerRow from "./monopoly_player_table";
 import MonopolyPropertyRow from "./monopoly_property_table";
 import PlayerRow from "./player_table";
+import PoolBallRow from "./pool_ball_table";
+import PoolGameRow from "./pool_game_table";
+import PoolSeatRow from "./pool_seat_table";
 import RoomMemberRow from "./room_member_table";
 
 /** Type-only namespace exports for generated type groups. */
@@ -191,6 +196,48 @@ const tablesSchema = __schema({
       { name: 'player_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, PlayerRow),
+  poolBall: __table({
+    name: 'pool_ball',
+    indexes: [
+      { accessor: 'id', name: 'pool_ball_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'roomId', name: 'pool_ball_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'pool_ball_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, PoolBallRow),
+  poolGame: __table({
+    name: 'pool_game',
+    indexes: [
+      { accessor: 'roomId', name: 'pool_game_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'pool_game_room_id_key', constraint: 'unique', columns: ['roomId'] },
+    ],
+  }, PoolGameRow),
+  poolSeat: __table({
+    name: 'pool_seat',
+    indexes: [
+      { accessor: 'id', name: 'pool_seat_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'identity', name: 'pool_seat_identity_idx_btree', algorithm: 'btree', columns: [
+        'identity',
+      ] },
+      { accessor: 'roomId', name: 'pool_seat_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'pool_seat_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, PoolSeatRow),
   roomMember: __table({
     name: 'room_member',
     indexes: [
@@ -220,6 +267,8 @@ const reducersSchema = __reducers(
   __reducerSchema("leave_room", LeaveRoomReducer),
   __reducerSchema("monopoly_end_turn", MonopolyEndTurnReducer),
   __reducerSchema("monopoly_roll", MonopolyRollReducer),
+  __reducerSchema("pool_place_cue", PoolPlaceCueReducer),
+  __reducerSchema("pool_shoot", PoolShootReducer),
   __reducerSchema("quick_match", QuickMatchReducer),
   __reducerSchema("set_input", SetInputReducer),
   __reducerSchema("set_name", SetNameReducer),

@@ -3,6 +3,7 @@ import { player, gameRoom, roomMember } from './core/tables';
 import { fightMatch, fighter, fightInput, fightEvent, fightTick } from './games/fighter/tables';
 import { chessGame } from './games/chess/tables';
 import { monopolyGame, monopolyPlayer, monopolyProperty } from './games/monopoly/tables';
+import { poolBall, poolGame, poolSeat, poolTick } from './games/pool/tables';
 
 // The module schema instance lives in its own file so that reducer files can
 // import it (`import spacetimedb from '../schema'`) without creating a circular
@@ -21,5 +22,9 @@ const spacetimedb = schema({
   monopolyGame,
   monopolyPlayer,
   monopolyProperty,
+  poolBall,
+  poolGame,
+  poolSeat,
+  poolTick,
 });
 export default spacetimedb;

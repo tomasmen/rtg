@@ -916,3 +916,76 @@
 .start-game:hover {
   filter: brightness(1.08);
 }
+
+/* ---- Pool (2D canvas) ---- */
+.pool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(94vw, 900px);
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+.pool-canvas {
+  width: 100%;
+  max-width: 860px;
+  height: auto;
+  aspect-ratio: 860 / 460;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  cursor: crosshair;
+}
+.pool-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 860px;
+}
+.pool-turn {
+  flex: 1;
+  text-align: center;
+  font-weight: 650;
+  color: var(--text-h);
+  font-size: 14px;
+}
+.pool-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.pool-pill.current {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 1px var(--accent-border), 0 0 12px rgba(192, 132, 252, 0.22);
+}
+.pool-grp {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+.pool-grp.red { background: #d81f2a; }
+.pool-grp.yellow { background: #f2b705; }
+.pool-grp.open { background: #556; }
+.pool-pname {
+  color: var(--text-h);
+  font-size: 13px;
+  font-weight: 600;
+}
+.pool-pname b { color: var(--accent); font-weight: 600; }
+.pool-gmeta {
+  color: var(--text);
+  font-size: 12px;
+}
+.pool-log {
+  color: var(--text);
+  font-size: 13px;
+  min-height: 18px;
+  text-align: center;
+}

@@ -3,6 +3,7 @@ import { useTable, useReducer, useSpacetimeDB } from 'spacetimedb/react';
 import { tables, reducers } from '../module_bindings';
 import { FighterGame } from '../games/fighter/FighterGame';
 import { ChessGame } from '../games/chess/ChessGame';
+import { PoolGame } from '../games/pool/PoolGame';
 
 // Lazy so three.js / react-three-fiber only download when a Monopoly room opens.
 const MonopolyGame = lazy(() =>
@@ -29,6 +30,9 @@ export function WaitingRoom({ roomId }: { roomId: bigint }) {
   }
   if (room?.gameId === 'chess' && (room.status === 'active' || room.status === 'finished')) {
     return <ChessGame roomId={roomId} />;
+  }
+  if (room?.gameId === 'pool' && (room.status === 'active' || room.status === 'finished')) {
+    return <PoolGame roomId={roomId} />;
   }
   if (room?.gameId === 'monopoly' && (room.status === 'active' || room.status === 'finished')) {
     return (

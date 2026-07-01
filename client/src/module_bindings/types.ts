@@ -167,6 +167,53 @@ export const Player = __t.object("Player", {
 });
 export type Player = __Infer<typeof Player>;
 
+export const PoolBall = __t.object("PoolBall", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  num: __t.u8(),
+  x: __t.f32(),
+  y: __t.f32(),
+  vx: __t.f32(),
+  vy: __t.f32(),
+  pocketed: __t.bool(),
+});
+export type PoolBall = __Infer<typeof PoolBall>;
+
+export const PoolGame = __t.object("PoolGame", {
+  roomId: __t.u64(),
+  status: __t.string(),
+  phase: __t.string(),
+  currentSeat: __t.u8(),
+  seatCount: __t.u8(),
+  group0: __t.string(),
+  group1: __t.string(),
+  winnerSeat: __t.i8(),
+  ballInHand: __t.bool(),
+  log: __t.string(),
+  firstContact: __t.string(),
+  pottedRed: __t.u8(),
+  pottedYellow: __t.u8(),
+  pottedBlack: __t.bool(),
+  cueScratched: __t.bool(),
+  shotTicks: __t.u32(),
+});
+export type PoolGame = __Infer<typeof PoolGame>;
+
+export const PoolSeat = __t.object("PoolSeat", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  identity: __t.identity(),
+  seat: __t.u8(),
+});
+export type PoolSeat = __Infer<typeof PoolSeat>;
+
+export const PoolTick = __t.object("PoolTick", {
+  scheduledId: __t.u64(),
+  scheduledAt: __t.scheduleAt(),
+  roomId: __t.u64(),
+});
+export type PoolTick = __Infer<typeof PoolTick>;
+
 export const RoomMember = __t.object("RoomMember", {
   id: __t.u64(),
   roomId: __t.u64(),

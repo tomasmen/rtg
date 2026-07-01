@@ -10,6 +10,7 @@ export const GAMES: GameMeta[] = [
   { id: 'fighter', displayName: '🥊 Fighter', blurb: 'Networked 1v1 brawl' },
   { id: 'chess', displayName: '♟️ Chess', blurb: 'Turn-based 1v1' },
   { id: 'monopoly', displayName: '🚐 Monopoly', blurb: 'Office property · 2–6 · 3D' },
+  { id: 'pool', displayName: '🎱 Pool', blurb: 'British 8-ball · 1v1' },
 ];
 
 // Each playable game implements this in Phase 3+ (canvas mount/unmount).
