@@ -48,13 +48,14 @@ export function Arcade() {
 
       <section className="players">
         <h2>{online.length} online</h2>
-        <ul>
-          {players.map(p => (
-            <li key={p.identity.toHexString()} className={p.online ? 'online' : 'offline'}>
+        <ul className="players-scroll">
+          {online.map(p => (
+            <li key={p.identity.toHexString()} className="online">
               <span className="dot" />
               <span className="pname">{p.displayName || 'anon'}</span>
             </li>
           ))}
+          {online.length === 0 && <li className="muted">Nobody online.</li>}
         </ul>
       </section>
 

@@ -1,15 +1,24 @@
 :root {
-  --text: #9ca3af;
-  --text-h: #f3f4f6;
-  --bg: #16171d;
-  --panel: #1f2028;
-  --border: #2e303a;
+  --text: #97a1b2;
+  --text-h: #f5f7fa;
+  --bg: #0d0e13;
+  --bg-2: #121420;
+  --panel: #171922;
+  --panel-2: #1e2130;
+  --border: #262a37;
+  --border-2: #343949;
   --accent: #c084fc;
-  --accent-border: rgba(192, 132, 252, 0.5);
+  --accent-2: #8b5cf6;
+  --accent-border: rgba(192, 132, 252, 0.45);
   --online: #34d399;
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
+
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 30px rgba(0, 0, 0, 0.32);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.5), 0 18px 44px rgba(0, 0, 0, 0.42);
+  --grad-accent: linear-gradient(135deg, #c084fc 0%, #8b5cf6 100%);
 
   font: 16px/1.5 var(--sans);
   color: var(--text);
@@ -26,4 +35,29 @@
 body {
   margin: 0;
   min-height: 100svh;
+  /* subtle top glow + vertical wash for depth */
+  background:
+    radial-gradient(1100px 520px at 50% -8%, rgba(139, 92, 246, 0.16), transparent 62%),
+    linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 46%);
+  background-attachment: fixed;
+}
+
+/* refined thin scrollbars (modern, unobtrusive) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-2) transparent;
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #454b5e;
+  background-clip: padding-box;
 }

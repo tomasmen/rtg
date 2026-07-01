@@ -55,15 +55,25 @@
 
 .name-form button {
   padding: 10px 18px;
-  border-radius: 8px;
-  border: 1px solid var(--accent-border);
-  background: var(--accent);
-  color: #1a1024;
-  font-weight: 600;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: var(--grad-accent);
+  color: #14091f;
+  font-weight: 650;
   cursor: pointer;
+  transition: filter 0.14s ease, transform 0.1s ease;
 }
 .name-form button:hover {
   filter: brightness(1.08);
+}
+.name-form button:active {
+  transform: translateY(1px);
+}
+.name-form input {
+  transition: border-color 0.14s ease, box-shadow 0.14s ease;
+}
+.name-form input:focus {
+  box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.15);
 }
 
 .players h2 {
@@ -82,6 +92,12 @@
   flex-direction: column;
   gap: 6px;
 }
+/* keep the online list compact and scrollable when the office is busy */
+.players-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
 
 .players li {
   display: flex;
@@ -89,9 +105,14 @@
   gap: 10px;
   padding: 10px 14px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--panel);
   color: var(--text-h);
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+.players li:hover {
+  border-color: var(--border-2);
+  background: var(--panel-2);
 }
 .players li.offline {
   opacity: 0.45;
@@ -129,33 +150,60 @@
   margin-bottom: 28px;
 }
 .tile {
+  position: relative;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--panel);
-  padding: 16px;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  padding: 18px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.tile::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--grad-accent);
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+.tile:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lift);
+  border-color: var(--border-2);
+}
+.tile:hover::before {
+  opacity: 0.9;
 }
 .tile h3 {
   margin: 0 0 4px;
   color: var(--text-h);
+  letter-spacing: -0.2px;
 }
 .tile p {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   font-size: 14px;
 }
 
 .tile button,
 .rooms button {
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--accent-border);
-  background: var(--accent);
-  color: #1a1024;
-  font-weight: 600;
+  padding: 9px 15px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: var(--grad-accent);
+  color: #14091f;
+  font-weight: 650;
   cursor: pointer;
+  transition: filter 0.14s ease, transform 0.1s ease;
 }
 .tile button:hover,
 .rooms button:hover {
   filter: brightness(1.08);
+}
+.tile button:active,
+.rooms button:active {
+  transform: translateY(1px);
 }
 
 .rooms,
